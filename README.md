@@ -3,24 +3,16 @@
 [![Python 3](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
 
 ## About
-Discord bot for the Zen Center🍃 discord server made using the discord.py library.
+Discord bot tailored to the needs of the Zen Center🍃 discord server. Zen is made using discord.py, an async ready API wrapper for Discord, and is currently under development.
 
 ## Modules
-
-- Fun
-- Games
-- General
-- Misc
-- Moderation
-- Music ([Wavelink](https://github.com/PythonistaGuild/Wavelink "Wavelink") - Lavalink wrapper for discord.py)
-- System
-## Questions / Feedback / Problems
-
-If you have any questions, feedbacks or problems, you can contact me at the following:
-
-Gmail: deemohuang@gmail.com\
-Discord: `Debo#4828`
-
+- Fun (fun commands)
+- Games (minigames)
+- General (general commands)
+- Misc (random commands that aren't specific)
+- Moderation (commands that staff members will find useful)
+- Music (music commands made using [Wavelink](https://github.com/PythonistaGuild/Wavelink "Wavelink") - Lavalink wrapper for discord.py)
+- System (system commands)
 
 ## Created by
 - [@deemo-o](https://www.github.com/deemo-o)
