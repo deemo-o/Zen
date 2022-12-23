@@ -1,8 +1,0 @@
-2022-12-22 19:03:57,536:DEBUG:discord.client: on_ready has successfully been registered as an event
-2022-12-22 19:03:57,537:DEBUG:discord.client: on_member_join has successfully been registered as an event
-2022-12-22 19:03:57,537:DEBUG:discord.client: on_raw_reaction_add has successfully been registered as an event
-2022-12-22 19:03:57,537:DEBUG:discord.client: on_raw_reaction_remove has successfully been registered as an event
-2022-12-22 19:03:57,537:DEBUG:discord.client: on_command_error has successfully been registered as an event
-2022-12-22 19:03:57,589:INFO:discord.client: logging in using static token
-2022-12-22 19:03:58,206:INFO:discord.gateway: Shard ID None has connected to Gateway (Session ID: 1d69fb1471687a167e2dd9982e98545b).
-2022-12-22 21:10:06,533:INFO:discord.gateway: Shard ID None has successfully RESUMED session 1d69fb1471687a167e2dd9982e98545b.
