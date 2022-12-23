@@ -172,7 +172,9 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
 async def on_command_error(ctx, error): 
     if isinstance(error, commands.CommandNotFound): 
         await ctx.send(f"This command does not exist! Type {client.command_prefix}help if you are lost.")
-
+    else:
+        print(error)
+            
 for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):
         asyncio.run(client.load_extension(f"cogs.{filename[:-3]}"))
