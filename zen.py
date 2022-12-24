@@ -1,7 +1,9 @@
 import asyncio
+import datetime
 import logging
 import os
 import discord
+from datetime import datetime
 from discord.ext import commands
 from discord import app_commands
 from discord.utils import get
@@ -20,7 +22,7 @@ class Help(commands.HelpCommand):
             if cog is not None:
                 description += f'**`{cog.qualified_name}`** - {cog.description}\n'
 
-        embed = discord.Embed(title="List of modules", description=description)
+        embed = discord.Embed(title="List of modules", description=description, timestamp=datetime.now(), color=discord.Color.from_rgb(248, 175, 175))
         embed.set_footer(text=f'Made by {author.name}#{author.discriminator}', icon_url=author.avatar)
         await self.get_destination().send(embed=embed)
 
@@ -55,7 +57,7 @@ class Help(commands.HelpCommand):
                         else:
                             description += f'**`/{command.name}`**: {command.description}\n'
 
-        embed = discord.Embed(title=f'{cog.qualified_name}', description=description)
+        embed = discord.Embed(title=f'{cog.qualified_name}', description=description, timestamp=datetime.now(), color=discord.Color.from_rgb(248, 175, 175))
         embed.set_footer(text=f'Made by {author.name}#{author.discriminator}', icon_url=author.avatar)
         await self.get_destination().send(embed=embed)
 
@@ -73,7 +75,7 @@ class Help(commands.HelpCommand):
         else:
             aliases = 'This command doesn\'t have any aliases.'
         description += f'\n\n**Aliases:**\n{aliases}'
-        embed = discord.Embed(title=command.name.capitalize(), description=description)
+        embed = discord.Embed(title=command.name.capitalize(), description=description, timestamp=datetime.now(), color=discord.Color.from_rgb(248, 175, 175))
         embed.set_footer(text=f'Made by {author.name}#{author.discriminator}', icon_url=author.avatar)
         await self.get_destination().send(embed=embed)
 
