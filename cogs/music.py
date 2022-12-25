@@ -332,7 +332,7 @@ class Music(commands.Cog, description="Music commands."):
         """Change the players volume, between 1 and 100."""
         player: Player = ctx.voice_client
 
-        if not player.is_connected:
+        if not player.is_connected():
             return
 
         if not 0 < vol < 101:
@@ -344,10 +344,10 @@ class Music(commands.Cog, description="Music commands."):
     @commands.command(aliases=["q"], brief='Displays the queue.', description='This command will display the queue.')
     async def queue(self, ctx: commands.Context, page: int = 1):
         player: Player = ctx.voice_client
-        if not player.is_connected:
+        if not player.is_connected():
             return await ctx.send('Bruh I aint even there...')
-        if len(player.queue._queue) == 0 and not player.is_playing:
-            return await ctx.send('Play something homie...')
+        if player.queue.qsize() == 0 and not player.is_playing():
+            return await ctx.send(embed=discord.Embed(description="The queue is empty!", color=ctx.author.top_role.color), delete_after=60)
         track: Union[Track, YouTubeTrack] = player.source
         counter = 0
         total_page = 1
