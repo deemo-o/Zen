@@ -1,6 +1,7 @@
 import asyncio
 import datetime
 import math
+import os
 import random
 import typing
 import async_timeout
@@ -14,6 +15,7 @@ from discord.ext import commands
 from discord import app_commands
 from music_utils.source import Source
 from music_utils.loop import Loop
+from dotenv import load_dotenv
 
 class Track(wavelink.Track):
 
@@ -118,11 +120,15 @@ class Music(commands.Cog, description="Music commands."):
     async def start_nodes(self):
         await self.client.wait_until_ready()
 
+        load_dotenv()
+
         await wavelink.NodePool.create_node(
             bot=self.client,
-            host="localhost",
-            port=8079,
-            password="zen")
+            host=os.getenv("HOST"),
+            port=os.getenv("PORT"),
+            password=os.getenv("PASSWORD"),
+            https=True,
+            identifier="Zen")
 
     def get_nodes(self):
         return sorted(wavelink.NodePool._nodes.values(), key=lambda n: len(n.players))
@@ -225,7 +231,7 @@ class Music(commands.Cog, description="Music commands."):
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, player: Player, track: Union[Track, YouTubeTrack]):
         print(f"Now Playing: {track.title}")
-        
+
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, player: Player, track: YouTubeTrack, reason):
         await player.do_next()
