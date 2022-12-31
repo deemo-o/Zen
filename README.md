@@ -14,5 +14,13 @@ Discord bot tailored to the needs of the Zen Center🍃 discord server. Zen is m
 - Music (music commands made using [Wavelink](https://github.com/PythonistaGuild/Wavelink "Wavelink") - Lavalink wrapper for discord.py)
 - System (system commands)
 
+## Virtual Environment Setup
+
+- Clone repo
+- Change into the repo's directory
+- `python3 -m venv bot-env`
+- `pip install -U discord.py[voice]`
+- `pip install wavelink`
+
 ## Created by
 - [@deemo-o](https://www.github.com/deemo-o)
