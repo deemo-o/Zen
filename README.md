@@ -32,7 +32,7 @@ MacOS/Linux:
 
 Install the required libraries:
 
-`pip install -U discord.py` or `pip install -U discord.py`\
+`pip install -U discord.py` or `pip install -U discord.py[voice]`\
 `pip install wavelink`
 
 ## Created by
