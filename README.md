@@ -16,11 +16,28 @@ Discord bot tailored to the needs of the Zen Center🍃 discord server. Zen is m
 
 ## Virtual Environment Setup
 
-- Clone repo
+- Clone the repository
 - Change into the repo's directory
-- `python3 -m venv bot-env`
-- `pip install -U discord.py[voice]`
-- `pip install wavelink`
+- Setup the virtual environment in the terminal and activate it
+
+Windows:
+
+`py -3 -m venv bot-env`\
+`/bot-env/Scripts/activate.bat`
+
+MacOS/Linux:
+
+`python3 -m venv bot-env`\
+`source /bot-env/bin/activate`
+
+Install the required libraries:
+
+`pip install -U discord.py` or `pip install -U discord.py`\
+`pip install wavelink`
 
 ## Created by
 - [@deemo-o](https://www.github.com/deemo-o)
+
+## Mongrels
+- [Kenny-star](https://github.com/Kenny-star)
+- [siwuagain](https://github.com/siwuagain)
