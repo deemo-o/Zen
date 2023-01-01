@@ -59,6 +59,10 @@ class Fun(commands.Cog, description="Fun commands."):
     async def dictionary(self, ctx: commands.Context, *, word: str):
         dictionary = PyDictionary()
         definitions = dictionary.meaning(word)
+
+        if not definitions:
+            return await ctx.send("This word doesn't exist in our dictionary!")
+            
         nouns, adjectives, verbs = "", "", ""
         max_char = 1024
         nouns_char, adj_char, verbs_char = 0, 0, 0
