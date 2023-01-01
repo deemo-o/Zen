@@ -101,12 +101,13 @@ class General(commands.Cog, description="Simple commands."):
                 windSpeedImp = round(windSpeed / 1.609)
         embed = discord.Embed(title=f'Current Weather in {cityName}, {datetime.today().strftime("%H:%M %p")}:', color=ctx.author.top_role.color)
         embed.set_thumbnail(url=f"http://openweathermap.org/img/wn/{weatherIcon}@2x.png")
-        embed.add_field(name='Current Temp', value=f"{tempInC} \N{DEGREE SIGN}C | {tempInF} \N{DEGREE SIGN}F", inline=True)
-        embed.add_field(name='Feels Like', value=f"{feelsLikeInC} \N{DEGREE SIGN}C | {feelsLikeInF} \N{DEGREE SIGN}F", inline=True)
+        embed.add_field(name='Current Temp', value=f"{tempInC} \N{DEGREE SIGN}C | {tempInF}\N{DEGREE SIGN}F", inline=True)
+        embed.add_field(name='Feels Like', value=f"{feelsLikeInC}\N{DEGREE SIGN}C | {feelsLikeInF}\N{DEGREE SIGN}F", inline=True)
+        embed.add_field(name=chr(173), value=chr(173), inline=True)
         embed.add_field(name='Description', value=f"{weatherDesc}", inline=True)
         embed.add_field(name='Humidity', value=f"{humidity}%", inline=True)
-        embed.add_field(name='Wind Speed', value=f"{windSpeed} km/h | {windSpeedImp} m/h", inline=True)
+        embed.add_field(name='Wind Speed', value=f"{windSpeed}km/h | {windSpeedImp} m/h", inline=True)
         await ctx.send(embed=embed)  
-        
+
 async def setup(client):
     await client.add_cog(General(client))
