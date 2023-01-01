@@ -4,6 +4,7 @@ import random
 import aiohttp
 from discord.ext import commands
 from discord import app_commands
+from PyDictionary import PyDictionary
  
 class Fun(commands.Cog, description="Fun commands."):
     
@@ -56,16 +57,42 @@ class Fun(commands.Cog, description="Fun commands."):
 
     @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.", description="This command will ge the definition(s) of the word you specified.")
     async def dictionary(self, ctx: commands.Context, *, word: str):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"https://some-random-api.ml/others/dictionary?word={word}") as response:
-                if response.status == 200:
-                    data = await response.json()
-                    
-                    embed = discord.Embed(title="Zen | Dictionary", color=ctx.author.color)
-                    embed.add_field(name="Word", value=data["word"].capitalize(), inline=False)
-                    embed.add_field(name="Definition", value=data["definition"], inline=False)
+        dictionary = PyDictionary()
+        definitions = dictionary.meaning(word)
+        nouns, adjectives, verbs = "", "", ""
+        max_char = 1024
+        nouns_char, adj_char, verbs_char = 0, 0, 0
 
-                    await ctx.send(embed=embed)
+        if "Noun" in definitions.keys():
+            for index, definition in enumerate(definitions["Noun"]):
+                nouns_char += len(definition)
+                if nouns_char > max_char:
+                    break
+                nouns += f"{index + 1} - {definition.capitalize()}\n"
+        if "Adjective" in definitions.keys():
+            for index, definition in enumerate(definitions["Adjective"]):
+                adj_char += len(definition)
+                if adj_char > max_char:
+                    break
+                adjectives += f"{index + 1} - {definition.capitalize()}\n"
+        if "Verb" in definitions.keys():
+            for index, definition in enumerate(definitions["Verb"]):
+                verbs_char += len(definition)
+                if verbs_char > max_char:
+                    break
+                verbs += f"{index + 1} - {definition.capitalize()}\n"
+
+        embed = discord.Embed(title="Zen | Dictionary", color=ctx.author.color)
+        embed.add_field(name="Word", value=word.capitalize(), inline=False)
+
+        if nouns:
+            embed.add_field(name="Noun", value=nouns, inline=False)
+        if adjectives:
+            embed.add_field(name="Adjective", value=adjectives, inline=False)
+        if verbs:
+            embed.add_field(name="Verb", value=verbs, inline=False)
+            
+        await ctx.send(embed=embed)
 
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
