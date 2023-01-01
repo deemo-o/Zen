@@ -3,7 +3,7 @@
 [![Python 3](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
 
 ## About
-Discord bot tailored to the needs of the Zen Center🍃 discord server. Zen is made using discord.py, an async ready API wrapper for Discord, and is currently under development.
+Discord bot tailored to the needs of the Zen Center🍃 discord server, a fun little project that we are working on. Zen is made using discord.py, an async ready API wrapper for Discord, and is currently under development.
 
 ## Modules
 - Fun (fun commands)
@@ -13,8 +13,9 @@ Discord bot tailored to the needs of the Zen Center🍃 discord server. Zen is m
 - Moderation (commands that staff members will find useful)
 - Music (music commands made using [Wavelink](https://github.com/PythonistaGuild/Wavelink "Wavelink") - Lavalink wrapper for discord.py)
 - System (system commands)
+- Yu-Gi-Oh!
 
-## Virtual Environment Setup
+## Virtual Environment Setup For Collaborators
 
 - Clone the repository
 - Change into the repo's directory
@@ -32,13 +33,9 @@ MacOS/Linux:
 
 Install the required libraries:
 
-`pip install -U discord.py` or `pip install -U discord.py[voice]`\
-`pip install wavelink`\
-`pip install python-dotenv`
+`pip install -r requirements.txt`
 
 ## Created by
 - [@deemo-o](https://www.github.com/deemo-o)
-
-## Slaves
 - [@Kenny-star](https://github.com/Kenny-star)
 - [@siwuagain](https://github.com/siwuagain)
