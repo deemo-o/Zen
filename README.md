@@ -38,6 +38,6 @@ Install the required libraries:
 ## Created by
 - [@deemo-o](https://www.github.com/deemo-o)
 
-## Mongrels
-- [Kenny-star](https://github.com/Kenny-star)
-- [siwuagain](https://github.com/siwuagain)
+## Slaves
+- [@Kenny-star](https://github.com/Kenny-star)
+- [@siwuagain](https://github.com/siwuagain)
