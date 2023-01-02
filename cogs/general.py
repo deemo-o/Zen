@@ -103,7 +103,7 @@ class General(commands.Cog, description="Simple commands."):
         humidity = data['main']['humidity']
         windSpeed = round(data['wind']['speed'] * 3.6)
         windSpeedImp = round(windSpeed / 1.609)
-        embed = discord.Embed(title=f'Current Weather in {cityName}:', color=ctx.author.top_role.color)
+        embed = discord.Embed(title=f'Current Weather in {cityName}', color=ctx.author.top_role.color)
         embed.set_thumbnail(url=f"http://openweathermap.org/img/wn/{weatherIcon}@2x.png")
         embed.add_field(name='Current Temp', value=f"{tempInC} \N{DEGREE SIGN}C | {tempInF}\N{DEGREE SIGN}F", inline=True)
         embed.add_field(name='Feels Like', value=f"{feelsLikeInC}\N{DEGREE SIGN}C | {feelsLikeInF}\N{DEGREE SIGN}F", inline=True)
