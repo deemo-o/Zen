@@ -55,14 +55,13 @@ class Fun(commands.Cog, description="Fun commands."):
                     data = io.BytesIO(await response.read())
                     await ctx.send(file=discord.File(data, "oogway_quote.png"))
 
-    @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.", description="This command will ge the definition(s) of the word you specified.")
+    @commands.command(aliases=["dict", "Dict"], brief="Gets the definition(s) of the specified word.", description="This command will ge the definition(s) of the word you specified.")
     async def dictionary(self, ctx: commands.Context, *, word: str):
         dictionary = PyDictionary()
         definitions = dictionary.meaning(word)
 
         if not definitions:
             return await ctx.send("This word doesn't exist in our dictionary!")
-            
         nouns, adjectives, verbs = "", "", ""
         max_char = 1024
         nouns_char, adj_char, verbs_char = 0, 0, 0
@@ -97,6 +96,12 @@ class Fun(commands.Cog, description="Fun commands."):
             embed.add_field(name="Verb", value=verbs, inline=False)
             
         await ctx.send(embed=embed)
+    
+    @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will ge the synonym(s) of the word you specified.")
+    async def synonym(self, ctx: commands.Context, *, word: str):
+        dictionary = PyDictionary()
+        synonyms = dictionary.synonym("Life")
+        await ctx.send(synonyms)
 
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
