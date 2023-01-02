@@ -3,4 +3,5 @@
 bot-env
 __pycache__
 discord.log
+yugioh.sqlite3
 Lavalink
