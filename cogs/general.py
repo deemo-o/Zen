@@ -5,7 +5,6 @@ from datetime import date, datetime
 from discord.ext import commands
 from discord import app_commands
 import aiohttp
-from aiohttp import web
 import typing
 import os
 from dotenv import load_dotenv
