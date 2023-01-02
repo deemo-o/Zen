@@ -5,6 +5,7 @@ import aiohttp
 from discord.ext import commands
 from discord import app_commands
 from PyDictionary import PyDictionary
+from wordhoard import Antonyms, Synonyms
  
 class Fun(commands.Cog, description="Fun commands."):
     
@@ -99,9 +100,9 @@ class Fun(commands.Cog, description="Fun commands."):
     
     @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will ge the synonym(s) of the word you specified.")
     async def synonym(self, ctx: commands.Context, *, word: str):
-        dictionary = PyDictionary()
-        synonyms = dictionary.synonym("Life")
-        await ctx.send(synonyms)
+        synonyms = Synonyms(search_string='bad')
+        synonymResults = synonyms.find_synonyms()
+        print(synonymResults)
 
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
