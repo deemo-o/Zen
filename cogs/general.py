@@ -4,6 +4,10 @@ import discord
 from datetime import date, datetime
 from discord.ext import commands
 from discord import app_commands
+import aiohttp
+import typing
+import os
+from dotenv import load_dotenv
  
 class General(commands.Cog, description="Simple commands."):
     
@@ -63,7 +67,7 @@ class General(commands.Cog, description="Simple commands."):
 
         await ctx.send(embed=embed)
 
-    @commands.command(brief='Information about the server.', description='This command dwill display some information about the current server.')
+    @commands.command(brief='Information about the server.', description='This command will display some information about the current server.')
     async def about(self, ctx: commands.Context):
         serverdesc = ctx.guild.description
         if serverdesc is None:
@@ -78,6 +82,37 @@ class General(commands.Cog, description="Simple commands."):
         embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url="https://cdn-icons-png.flaticon.com/512/1593/1593591.png")
 
         await ctx.send(embed=embed)
-
+    
+    @commands.command(brief= 'Current weather information.', description = 'Get the current weather information for any city (Defaulted to Monreal).')
+    async def weather(self, ctx: commands.Context, city: typing.Optional[str] = "Montreal"):
+        load_dotenv()
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={os.getenv('WEATHER_API_KEY')}&units=metric") as resp:
+                    print(resp.status)
+                    data = await resp.json()
+                    cityName = data['name']
+        except: 
+            return await ctx.send("Make sure you wrote the city name correctly.")
+        tempInC = round(data['main']['temp'])
+        tempInF = round(tempInC * 1.8 + 32) 
+        feelsLikeInC = round(data['main']['feels_like'])
+        feelsLikeInF = round(feelsLikeInC * 1.8 + 32)
+        weatherDesc = data['weather'][0]['description'].title()
+        weatherIcon = data['weather'][0]['icon']
+        humidity = data['main']['humidity']
+        windSpeed = round(data['wind']['speed'] * 3.6)
+        windSpeedImp = round(windSpeed / 1.609)
+        embed = discord.Embed(title=f'Current Weather in {cityName}', color=ctx.author.top_role.color)
+        embed.set_thumbnail(url=f"http://openweathermap.org/img/wn/{weatherIcon}@2x.png")
+        embed.add_field(name='Current Temp', value=f"{tempInC} \N{DEGREE SIGN}C | {tempInF}\N{DEGREE SIGN}F", inline=True)
+        embed.add_field(name='Feels Like', value=f"{feelsLikeInC}\N{DEGREE SIGN}C | {feelsLikeInF}\N{DEGREE SIGN}F", inline=True)
+        embed.add_field(name=chr(173), value=chr(173), inline=True)
+        embed.add_field(name='Description', value=f"{weatherDesc}", inline=True)
+        embed.add_field(name='Humidity', value=f"{humidity}%", inline=True)
+        embed.add_field(name='Wind Speed', value=f"{windSpeed} km/h | {windSpeedImp} m/h", inline=True)
+        embed.timestamp = datetime.now()
+        embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar)
+        await ctx.send(embed=embed) 
 async def setup(client):
     await client.add_cog(General(client))
