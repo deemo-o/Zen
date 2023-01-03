@@ -146,7 +146,6 @@ async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
     member: discord.Member = get(client.get_guild(payload.guild_id).members, id=payload.user_id)
     channel_id: discord.TextChannel.id = payload.channel_id
     emoji: discord.PartialEmoji = payload.emoji
-
     study_role = get(member.guild.roles, name="Study")
     movie_role = get(member.guild.roles, name="Movie")
     game_role = get(member.guild.roles, name="Game")
