@@ -12,6 +12,38 @@ class Fun(commands.Cog, description="Fun commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
+    
+    def getSynOrAnt(self, method, word):
+        methods = {
+            "synonym" : Synonyms(search_string=word).find_synonyms(),
+            "antonym" : Antonyms(search_string=word).find_antonyms()
+        }
+        if "Please verify that the word is spelled correctly." in methods[method]:
+            raise Exception
+        return methods[method]
+
+    def fillEmbed(self, title, word, results):
+        embeds = []
+        fields = []
+        field = []
+        max_char = 1024
+        for index, result in enumerate(results):
+            max_char -= len(result) + 2
+            if max_char > 0:
+                field.append(result)
+                if index == len(results) - 1:
+                    fields.append(field)
+                    field = []  
+            else:
+                fields.append(field)
+                field = []
+                max_char = 1024
+        for field in fields:
+            page = discord.Embed(title=f"Zen | Thesaurus")
+            page.add_field(name="Word", value=f"{word.title()}", inline=False)
+            page.add_field(name=f"{title}", value=f"{', '.join(field)}", inline=False)
+            embeds.append(page)     
+        return embeds
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -99,38 +131,6 @@ class Fun(commands.Cog, description="Fun commands."):
 
         await ctx.send(embed=embed)
 
-    def getSynOrAnt(self, method, word):
-        methods = {
-            "synonym" : Synonyms(search_string=word).find_synonyms(),
-            "antonym" : Antonyms(search_string=word).find_antonyms()
-        }
-        if "Please verify that the word is spelled correctly." in methods[method]:
-            raise Exception
-        return methods[method]
-
-    def fillEmbed(self, title, word, results):
-        embeds = []
-        fields = []
-        field = []
-        max_char = 1024
-        for index, result in enumerate(results):
-            max_char -= len(result) + 2
-            if max_char > 0:
-                field.append(result)
-                if index == len(results) - 1:
-                    fields.append(field)
-                    field = []  
-            else:
-                fields.append(field)
-                field = []
-                max_char = 1024
-        for field in fields:
-            page = discord.Embed(title=f"Zen | Thesaurus")
-            page.add_field(name="Word", value=f"{word.title()}", inline=False)
-            page.add_field(name=f"{title}", value=f"{', '.join(field)}", inline=False)
-            embeds.append(page)     
-        return embeds
-
     @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will get the synonym(s) of the word you specified.")
     async def synonym(self, ctx: commands.Context, *, word: str):
         try:
@@ -148,7 +148,7 @@ class Fun(commands.Cog, description="Fun commands."):
             await Paginator.Simple().start(ctx, pages=embeds)
         except:
             await ctx.send(f"No antonyms were found for the word: {word}.")
-            
+
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
         if random.randint(0, 1) == 0:
