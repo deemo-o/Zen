@@ -1,0 +1,168 @@
+2023-01-01 22:09:01:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:01:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:02:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:02:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:02:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:02:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:02:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:02:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:32:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:32:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:32:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:32:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:33:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:33:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:09:33:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:09:33:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:18:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:18:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:19:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:19:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:19:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:19:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:20:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:20:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:53:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:53:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:53:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:53:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:53:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:53:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:11:54:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:11:54:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:17:25:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:19:29:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:19:29:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:19:29:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:19:29:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:19:29:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:19:29:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:19:30:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:19:30:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 325, in _query_merriam_webster
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 412, in _query_synonym_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 498, in _query_thesaurus_com
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR: An error occurred in the following code segment:
+2023-01-01 22:20:50:wordhoard.synonyms:ERROR:   File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\wordhoard\synonyms.py", line 581, in _query_wordnet
+    soup = BeautifulSoup(response.text, "lxml")
+  File "C:\Users\Simon\Documents\Zen\bot-env\lib\site-packages\bs4\__init__.py", line 248, in __init__
+    raise FeatureNotFound(
+

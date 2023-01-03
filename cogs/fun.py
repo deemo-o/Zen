@@ -11,7 +11,14 @@ class Fun(commands.Cog, description="Fun commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
-        
+    
+    def getSynOrAnt(self, method, words):
+        methods = {
+            "synonym" : Synonyms(search_string=words).find_synonyms(),
+            "antonym" : Antonyms(search_string=words).find_antonyms()
+        }
+        return methods[method]
+    
     @commands.Cog.listener()
     async def on_ready(self):
         print("Fun module has been loaded.")
@@ -98,11 +105,15 @@ class Fun(commands.Cog, description="Fun commands."):
             
         await ctx.send(embed=embed)
     
-    @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will ge the synonym(s) of the word you specified.")
+    @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will get the synonym(s) of the word you specified.")
     async def synonym(self, ctx: commands.Context, *, word: str):
-        synonyms = Synonyms(search_string='bad')
-        synonymResults = synonyms.find_synonyms()
-        print(synonymResults)
+        results = self.getSynOrAnt("synonym", word)
+        await ctx.send(results)
+
+    @commands.command(aliases=["Ant", "ant", "Antonym"], brief="Gets the antonym(s) of the specified word.", description="This command will get the antonym(s) of the word you specified.")
+    async def antonym(self, ctx: commands.Context, *, word: str):
+        results = self.getSynOrAnt("antonym", word)
+        await ctx.send(results)
 
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
