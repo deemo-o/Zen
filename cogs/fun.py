@@ -96,7 +96,7 @@ class Fun(commands.Cog, description="Fun commands."):
             embed.add_field(name="Adjective", value=adjectives, inline=False)
         if verbs:
             embed.add_field(name="Verb", value=verbs, inline=False)
-            
+
         await ctx.send(embed=embed)
 
     def getSynOrAnt(self, method, word):
@@ -107,6 +107,7 @@ class Fun(commands.Cog, description="Fun commands."):
         if "Please verify that the word is spelled correctly." in methods[method]:
             raise Exception
         return methods[method]
+
     def fillEmbed(self, title, word, results):
         embeds = []
         fields = []
@@ -129,24 +130,25 @@ class Fun(commands.Cog, description="Fun commands."):
             page.add_field(name=f"{title}", value=f"{', '.join(field)}", inline=False)
             embeds.append(page)     
         return embeds
+
     @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will get the synonym(s) of the word you specified.")
     async def synonym(self, ctx: commands.Context, *, word: str):
         try:
             results = self.getSynOrAnt("synonym", word)
+            embeds = self.fillEmbed("Synonyms", word, results)
+            await Paginator.Simple().start(ctx, pages=embeds)
         except:
             await ctx.send(f"No synonyms were found for the word: {word}.")
-        embeds = self.fillEmbed("Synonyms", word, results)
-        await Paginator.Simple().start(ctx, pages=embeds)
 
     @commands.command(aliases=["Ant", "ant", "Antonym"], brief="Gets the antonym(s) of the specified word.", description="This command will get the antonym(s) of the word you specified.")
     async def antonym(self, ctx: commands.Context, *, word: str):
         try:
             results = self.getSynOrAnt("antonym", word)
+            embeds = self.fillEmbed("Antonyms", word, results)
+            await Paginator.Simple().start(ctx, pages=embeds)
         except:
             await ctx.send(f"No antonyms were found for the word: {word}.")
-        embeds = self.fillEmbed("Antonyms", word, results)
-        await Paginator.Simple().start(ctx, pages=embeds)
-
+            
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
         if random.randint(0, 1) == 0:
