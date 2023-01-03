@@ -195,6 +195,7 @@ class Economy(commands.Cog, description="Economy commands."):
         else:
             if dboperations.check_member_exists(self.connection, member):
                 member_data = dboperations.get_member(self.connection, member)[0]
+                embed.set_thumbnail(url=member.avatar)
                 embed.add_field(name="Account Name", value=f"**{member_data[2]}**", inline=False)
                 embed.add_field(name="Net Worth", value=f"**{member_data[3]}**{self.displayed_currency}", inline=False)
                 embed.add_field(name="Rank", value=f"**{member_data[4].capitalize()}**", inline=False)
