@@ -138,8 +138,9 @@ class Fun(commands.Cog, description="Fun commands."):
             embeds = self.fillEmbed("Synonyms", word, results)
             await Paginator.Simple().start(ctx, pages=embeds)
         except:
-            await ctx.send(f"No synonyms were found for the word: {word}.")
-
+            embed = discord.Embed(title="Zen | Thesaurus", description=f"No synonyms were found for the word: {word}")
+            await ctx.send(embed=embed)
+            
     @commands.command(aliases=["Ant", "ant", "Antonym"], brief="Gets the antonym(s) of the specified word.", description="This command will get the antonym(s) of the word you specified.")
     async def antonym(self, ctx: commands.Context, *, word: str):
         try:
@@ -147,7 +148,8 @@ class Fun(commands.Cog, description="Fun commands."):
             embeds = self.fillEmbed("Antonyms", word, results)
             await Paginator.Simple().start(ctx, pages=embeds)
         except:
-            await ctx.send(f"No antonyms were found for the word: {word}.")
+            embed = discord.Embed(title="Zen | Thesaurus", description=f"No antonyms were found for the word: {word}")
+            await ctx.send(embed=embed)
 
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
