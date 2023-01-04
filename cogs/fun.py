@@ -7,7 +7,7 @@ from discord import app_commands
 from PyDictionary import PyDictionary
 from wordhoard import Antonyms, Synonyms
 import Paginator
- 
+
 class Fun(commands.Cog, description="Fun commands."):
     
     def __init__(self, client: commands.Bot):
@@ -89,7 +89,7 @@ class Fun(commands.Cog, description="Fun commands."):
                     data = io.BytesIO(await response.read())
                     await ctx.send(file=discord.File(data, "oogway_quote.png"))
 
-    @commands.command(aliases=["dict", "Dict"], brief="Gets the definition(s) of the specified word.", description="This command will ge the definition(s) of the word you specified.")
+    @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.", description="This command will ge the definition(s) of the word you specified.")
     async def dictionary(self, ctx: commands.Context, *, word: str):
         dictionary = PyDictionary()
         definitions = dictionary.meaning(word)
@@ -131,7 +131,7 @@ class Fun(commands.Cog, description="Fun commands."):
 
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["Syn", "syn", "Synonym"], brief="Gets the synonym(s) of the specified word.", description="This command will get the synonym(s) of the word you specified.")
+    @commands.command(aliases=["syn"], brief="Gets the synonym(s) of the specified word.", description="This command will get the synonym(s) of the word you specified.")
     async def synonym(self, ctx: commands.Context, *, word: str):
         try:
             results = self.getSynOrAnt("synonym", word)
@@ -141,7 +141,7 @@ class Fun(commands.Cog, description="Fun commands."):
             embed = discord.Embed(title="Zen | Thesaurus", description=f"No synonyms were found for the word: {word}")
             await ctx.send(embed=embed)
             
-    @commands.command(aliases=["Ant", "ant", "Antonym"], brief="Gets the antonym(s) of the specified word.", description="This command will get the antonym(s) of the word you specified.")
+    @commands.command(aliases=["ant"], brief="Gets the antonym(s) of the specified word.", description="This command will get the antonym(s) of the word you specified.")
     async def antonym(self, ctx: commands.Context, *, word: str):
         try:
             results = self.getSynOrAnt("antonym", word)
