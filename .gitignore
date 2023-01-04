@@ -3,4 +3,5 @@ bot-env
 __pycache__
 discord.log
 Lavalink
+wordhoard_error.yaml
 database_utils/economy.db
