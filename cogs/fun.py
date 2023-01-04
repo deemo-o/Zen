@@ -55,7 +55,7 @@ class Fun(commands.Cog, description="Fun commands."):
                     data = io.BytesIO(await response.read())
                     await ctx.send(file=discord.File(data, "oogway_quote.png"))
 
-    @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.", description="This command will ge the definition(s) of the word you specified.")
+    @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.", description="This command will get the definition(s) of the word you specified.")
     async def dictionary(self, ctx: commands.Context, *, word: str):
         dictionary = PyDictionary()
         definitions = dictionary.meaning(word)
