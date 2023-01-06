@@ -71,7 +71,7 @@ class Games(commands.Cog, description="Games commands."):
         else: 
             player2 = member.name
             await ctx.send(embed=discord.Embed(title= "Zen | Games", description = f"""{member.mention}, You have been challenged to a game of 
-            Rock-Paper-Scissors by {player1}! Do you accept? (y/n)"""))
+            Rock-Paper-Scissors by {player1}! Do you accept? (y/n)"""), delete_after=60)
             try:
                 ans = await self.client.wait_for('message', check=checkAnswer, timeout = 60)
             except asyncio.TimeoutError:
@@ -92,54 +92,53 @@ class Games(commands.Cog, description="Games commands."):
         round = 1
         finalWinner = None
 
-        while round < 6:
+        while p1Points < 2 or p2Points < 2:
             await ctx.author.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
             try:
                 p1Input = await self.client.wait_for("message", check=checkP1Move, timeout = 60)
+                p1Move = playerMoves[p1Input.content.lower()]
             except asyncio.TimeoutError:
                 await ctx.send(embed=timeOutEmbed, delete_after=60)
                 return
-            p1Move = playerMoves[p1Input.content.lower()]
 
             if player2 == "The Zen Bot":
                 p2Move = botMoves[random.randint(1, 3)]
-                print(p2Move)
             else:
                 await member.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
                 try:
                     p2Input = await self.client.wait_for("message", check=checkP2Move, timeout = 60)
+                    p2Move = playerMoves[p2Input.content.lower()]
                 except asyncio.TimeoutError:
                     await ctx.send(embed=timeOutEmbed, delete_after=60)
                     return
-                p2Move = playerMoves[p2Input.content.lower()]
             
             winner = checkWinner(p1Move, p2Move)
             if winner == player1:
                 p1Points += 1
-                roundResult = f"{player1} wins this round! {p1Move} Beats {p2Move}. Score: {p1Points} : {p2Points}"
+                roundResult = f"{player1} wins this round! {p1Move} Beats {p2Move}. Score: {p1Points} - {p2Points}"
             elif winner == player2:
                 p2Points += 1
-                roundResult = f"{player2} wins this round! {p2Move} Beats {p1Move}. Score: {p1Points} : {p2Points}"
+                roundResult = f"{player2} wins this round! {p2Move} Beats {p1Move}. Score: {p1Points} - {p2Points}"
             else:
-                roundResult = f"Tie! Both players chose {p1Move}. Score: {p1Points} : {p2Points}"
+                roundResult = f"Tie! Both players chose {p1Move}. Score: {p1Points} - {p2Points}"
 
-            await ctx.author.send(embed=discord.Embed(title="Zen | Games", description=f"{roundResult}"), delete_after=60)
+            roundEmbed = discord.Embed(title="Zen | Games", description=f"{roundResult}")
+            await ctx.author.send(embed=roundEmbed, delete_after=60)
+            if player2 != "The Zen Bot":
+                await member.send(embed=roundEmbed, delete_after=60)
             
-            if member != "The Zen Bot":
-                await member.send(embed=discord.Embed(embed=discord.Embed, title="Zen | Games", description=f"{roundResult}"), delete_after=60)
-            
-            if p1Points == 3:
+            if p1Points == 2:
                 finalWinner = player1
                 break
-            elif p2Points == 3:
+            elif p2Points == 2:
                 finalWinner = player2
                 break
             round += 1
         
         if p1Points != p2Points:
-            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{finalWinner} wins the game! Final Score: {max(p1Points, p2Points)} Beats {min(p1Points, p2Points)}"), delete_after=60)
+            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{finalWinner} wins the game! Final Score: {max(p1Points, p2Points)} - {min(p1Points, p2Points)}"), delete_after=60)
         else: 
-            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points, p2Points}"), delete_after=60)
+            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"), delete_after=60)
 
 async def setup(client):
     await client.add_cog(Games(client))
