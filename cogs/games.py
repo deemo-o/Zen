@@ -76,6 +76,7 @@ class Games(commands.Cog, description="Games commands."):
                 ans = await self.client.wait_for('message', check=checkAnswer, timeout = 60)
             except asyncio.TimeoutError:
                 await ctx.send(embed=timeOutEmbed, delete_after=60)
+                return
             if ans.content.lower() in ["y", "yes",]:
                 await ctx.send(embed=discord.Embed(title="Zen | Games", description =f"{ans.author.name} has accepted the challenge!"), delete_after=60)
             else:
@@ -109,6 +110,7 @@ class Games(commands.Cog, description="Games commands."):
                     p2Input = await self.client.wait_for("message", check=checkP2Move, timeout = 60)
                 except asyncio.TimeoutError:
                     await ctx.send(embed=timeOutEmbed, delete_after=60)
+                    return
                 p2Move = playerMoves[p2Input.content.lower()]
             
             winner = checkWinner(p1Move, p2Move)
