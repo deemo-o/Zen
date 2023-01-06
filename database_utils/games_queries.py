@@ -1,0 +1,3 @@
+CREATE_BATTLESHIP_TABLE = "CREATE TABLE IF NOT EXISTS battleship (id INTEGER PRIMARY KEY, userid INTEGER UNIQUE, rating INTEGER);"
+INSERT_RATING = "INSERT OR REPLACE INTO battleship (userid, rating) VALUES (?, ?)"
+GET_RATING_BY_USERID = "SELECT * FROM battleship where userid = ?"
