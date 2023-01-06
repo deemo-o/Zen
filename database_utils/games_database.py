@@ -8,10 +8,10 @@ def create_battleship_table(connection):
     with connection:
         connection.execute(games_queries.CREATE_BATTLESHIP_TABLE)
     
-def insert_rating(connection, userid, rating):
+def insert_battleship_rating(connection, userid, rating):
     with connection:
-        connection.execute(games_queries.INSERT_RATING, (userid, rating))
+        connection.execute(games_queries.INSERT_BATTLESHIP_RATING, (userid, rating))
 
-def get_rating(connection, userid):
+def get_battleship_rating(connection, userid):
     with connection:
-        return connection.execute(games_queries.GET_RATING, (userid)).fetchone()
+        return connection.execute(games_queries.GET_BATTLE_SHIP_RATING_BY_USERID, (userid)).fetchone()
