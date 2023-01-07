@@ -39,15 +39,15 @@ def get_all_ranks(connection):
 
 def get_member_by_userid(connection, userid):
     with connection:
-        return connection.execute(economy_queries.GET_MEMBER_BY_USERID, (userid,)).fetchone()
+        return connection.execute(economy_queries.GET_MEMBER_BY_USERID, (userid,)).fetchall()
 
 def get_rank_by_name(connection, name):
     with connection:
-        return connection.execute(economy_queries.GET_RANK_BY_NAME, (name,)).fetchone()
+        return connection.execute(economy_queries.GET_RANK_BY_NAME, (name,)).fetchall()
 
 def get_rank_by_position(connection, position):
     with connection:
-        return connection.execute(economy_queries.GET_RANK_BY_POSITION, (position,)).fetchone()
+        return connection.execute(economy_queries.GET_RANK_BY_POSITION, (position,)).fetchall()
 
 def delete_member_by_userid(connection, userid):
     with connection:

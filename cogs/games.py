@@ -11,8 +11,12 @@ class Games(commands.Cog, description="Games commands."):
         self.client = client
         self.connection = battleship_dboperations.connection()
         
+    def games_embed(self, ctx: commands.Context) -> discord.Embed:
+        embed = discord.Embed(title="Zen | Games", color=ctx.author.color)
+        return embed
+
     def expected_rating(self, player1_rating, player2_rating):
-        return 1 / (1 + 10 ** ((player1_rating - player2_rating) / 400))
+        return 1 / (1 + 10 ** ((player2_rating - player1_rating) / 400))
 
     def cog_command_error(self, ctx: commands.Context, error):
         print(error)
@@ -20,6 +24,19 @@ class Games(commands.Cog, description="Games commands."):
     @commands.Cog.listener()
     async def on_ready(self):
         print("Games module has been loaded.")
+        battleship_dboperations.create_table(self.connection)
+
+    @commands.command()
+    async def battleshiptop(self, ctx: commands.Context):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | BattleShip Leaderboard"
+        embed.description = ""
+        members_data = battleship_dboperations.get_leaderboard(self.connection)
+        print(members_data)
+        for index, member in enumerate(members_data):
+            embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]} ELO**\n"
+
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def battleship(self, ctx: commands.Context, member: discord.Member):
@@ -30,7 +47,7 @@ class Games(commands.Cog, description="Games commands."):
         for x in range(len(coordinates[1])):
             string_numbers += coordinates[1][x]
 
-        sizes = [3]
+        sizes = [1]
 
         player1_ships = []
         for size in sizes:
@@ -152,6 +169,11 @@ class Games(commands.Cog, description="Games commands."):
             await ctx.author.send(f"It's your turn {ctx.author.mention}, target a cell to attack (e.g. `B6`)")
 
             def check(m):
+                if m.content == f"{m.content[0]}10":
+                    x = ord(m.content[0].upper()) - 65
+                    y = 9
+                    if player2_board[x][y] != 2 and player2_board[x][y] != 3:
+                        return m.author == ctx.author
                 if len(m.content) == 2 and m.content[0].isalpha() and m.content[1].isnumeric():
                     x = ord(m.content[0].upper()) - 65
                     y = int(m.content[1]) - 1
@@ -167,20 +189,22 @@ class Games(commands.Cog, description="Games commands."):
             await asyncio.sleep(1)
 
             x = ord(response.content[0].upper()) - 65
-            y = int(response.content[1]) - 1
+            if len(response.content) == 3:
+                y = 9
+            else:
+                y = int(response.content[1]) - 1
 
             if player2_board[x][y] == 1:
                 player2_board[x][y] = 2
-                await ctx.author.send(f"You hit a ship on {response.content[0].upper()}{response.content[1]}!")
+                await ctx.author.send(f"You hit a ship on {response.content[0].upper()}{y + 1}!")
             else:
                 player2_board[x][y] = 3
-                await ctx.author.send(f"You didn't hit anything on {response.content[0].upper()}{response.content[1]}.")
+                await ctx.author.send(f"You didn't hit anything on {response.content[0].upper()}{y + 1}.")
             
             await asyncio.sleep(1)
 
-            for ship in player2_ships:
-                coord = ship[0]
-                print(coord)
+            for x in range(len(player2_ships[0])):
+                coord = player2_ships[0][x]
                 if player2_board[coord[0]][coord[1]] == 2:
                     player1_win = True
                     continue
@@ -195,8 +219,9 @@ class Games(commands.Cog, description="Games commands."):
                 player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
                 player1_new_rating = player1_rating + 32 * (1 - player1_expected_rating)
                 player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
-                battleship_dboperations.insert_rating(self.connection, ctx.author.id, player1_new_rating)
-                battleship_dboperations.insert_rating(self.connection, member.id, player2_new_rating)
+                battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
+                battleship_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
+                await ctx.send(f"{ctx.author.mention}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{member.mention}'s rating change: {player2_rating} - > {round(player2_new_rating)}")
                 return
 
             await ctx.author.send(f"It's {member.mention}'s turn!")
@@ -243,6 +268,11 @@ class Games(commands.Cog, description="Games commands."):
             await member.send(f"It's your turn {member.mention}, target a cell to attack (e.g. `B6`)")
 
             def check(m):
+                if m.content == f"{m.content[0]}10":
+                    x = ord(m.content[0].upper()) - 65
+                    y = 9
+                    if player2_board[x][y] != 2 and player2_board[x][y] != 3:
+                        return m.author == ctx.author
                 if len(m.content) == 2 and m.content[0].isalpha() and m.content[1].isnumeric():
                     x = ord(m.content[0].upper()) - 65
                     y = int(m.content[1]) - 1
@@ -258,21 +288,22 @@ class Games(commands.Cog, description="Games commands."):
             await asyncio.sleep(1)
 
             x = ord(response.content[0].upper()) - 65
-            y = int(response.content[1]) - 1
+            if len(response.content) == 3:
+                y = 9
+            else:
+                y = int(response.content[1]) - 1
 
             if player1_board[x][y] == 1:
                 player1_board[x][y] = 2
-                await member.send(f"You hit a ship on {response.content[0].upper()}{response.content[1]}!")
+                await member.send(f"You hit a ship on {response.content[0].upper()}{y + 1}!")
             else:
                 player1_board[x][y] = 3
-                await member.send(f"You didn't hit anything on {response.content[0].upper()}{response.content[1]}.")
+                await member.send(f"You didn't hit anything on {response.content[0].upper()}{y + 1}.")
             
             await asyncio.sleep(1)
 
-            for ship in player1_ships:
-                print(ship)
-                coord = ship[0]
-                print(coord)
+            for x in range(len(player1_ships[0])):
+                coord = player1_ships[0][x]
                 if player1_board[coord[0]][coord[1]] == 2:
                     player2_win = True
                     continue
@@ -283,12 +314,15 @@ class Games(commands.Cog, description="Games commands."):
                 await ctx.send(f"{member.mention} won the game!")
                 player1_rating = battleship_dboperations.get_rating(self.connection, ctx.author.id)
                 player2_rating = battleship_dboperations.get_rating(self.connection, member.id)
+                print(player1_rating)
+                print(player2_rating)
                 player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
                 player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
                 player1_new_rating = player1_rating + 32 * (0 - player1_expected_rating)
                 player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
-                battleship_dboperations.insert_rating(self.connection, ctx.author.id, player1_new_rating)
-                battleship_dboperations.insert_rating(self.connection, member.id, player2_new_rating)
+                battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
+                battleship_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
+                await ctx.send(f"{member.mention}'s rating change: {player2_rating} -> {round(player2_new_rating)}\n{ctx.author.mention}'s rating change: {player1_rating} - > {round(player1_new_rating)}")
                 return
 
             await member.send(f"It's {ctx.author.mention}'s turn!")
