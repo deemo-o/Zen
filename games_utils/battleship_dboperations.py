@@ -22,6 +22,10 @@ def insert_rating(connection, userid, rating):
 
 def get_rating(connection, userid):
     try:
-        return games_database.get_battleship_rating(connection, userid)
+        rating = games_database.get_battleship_rating(connection, userid)
+        if rating is None:
+            return 1200
+        else:
+            return rating[0]
     except Exception as exception:
         return exception
