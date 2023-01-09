@@ -7,7 +7,6 @@ from games_utils import battleship_dboperations
 import random
 import asyncio
 
-
 class Games(commands.Cog, description="Games commands."):
 
     def __init__(self, client: commands.Bot):
@@ -227,10 +226,8 @@ class Games(commands.Cog, description="Games commands."):
                 player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
                 player1_new_rating = player1_rating + 32 * (1 - player1_expected_rating)
                 player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
-                battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name,
-                                                      round(player1_new_rating))
-                battleship_dboperations.insert_rating(self.connection, member.id, member.name,
-                                                      round(player2_new_rating))
+                battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
+                battleship_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
                 await ctx.send(
                     f"{ctx.author.mention}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{member.mention}'s rating change: {player2_rating} - > {round(player2_new_rating)}")
                 return
@@ -331,10 +328,8 @@ class Games(commands.Cog, description="Games commands."):
                 player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
                 player1_new_rating = player1_rating + 32 * (0 - player1_expected_rating)
                 player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
-                battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name,
-                                                      round(player1_new_rating))
-                battleship_dboperations.insert_rating(self.connection, member.id, member.name,
-                                                      round(player2_new_rating))
+                battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
+                battleship_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
                 await ctx.send(
                     f"{member.mention}'s rating change: {player2_rating} -> {round(player2_new_rating)}\n{ctx.author.mention}'s rating change: {player1_rating} - > {round(player1_new_rating)}")
                 return
@@ -364,13 +359,11 @@ class Games(commands.Cog, description="Games commands."):
                 return True
 
         def checkP1Move(move):
-            if move.content.lower() in ["r", "rock", "p", "paper", "s",
-                                        "scissors"] and move.channel == ctx.author.dm_channel:
+            if move.content.lower() in ["r", "rock", "p", "paper", "s", "scissors"] and move.channel == ctx.author.dm_channel:
                 return True
 
         def checkP2Move(move):
-            if move.content.lower() in ["r", "rock", "p", "paper", "s",
-                                        "scissors"] and move.channel == member.dm_channel:
+            if move.content.lower() in ["r", "rock", "p", "paper", "s", "scissors"] and move.channel == member.dm_channel:
                 return True
 
         def checkWinner(p1Move, p2Move):
