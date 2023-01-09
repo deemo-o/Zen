@@ -4,4 +4,4 @@ __pycache__
 discord.log
 Lavalink
 wordhoard_error.yaml
-database_utils/economy.db
+database_utils/database.db
