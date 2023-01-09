@@ -168,11 +168,10 @@ class Fun(commands.Cog, description="Fun commands."):
 
     @commands.command(aliases=["8ball"], brief="Ask a question, and get an answer from the 8ball",
                       description="This command will take in a prompt and return the probability of it happening")
-    async def eightball(self, ctx: commands.Context, *, arg=None, member: discord.Member = None):
-        print(arg)
+    async def eightball(self, ctx: commands.Context, *, arg=None):
         if arg is None:
             await ctx.send(embed=discord.Embed(title="Zen | Fun",
-                                               description="Seems to me that you forgot to ask your question..."))
+                                               description="Seems to me that you forgot to ask your question...Try again!"))
         else:
             rng = random.randrange(1, 8)
 
@@ -192,12 +191,6 @@ class Fun(commands.Cog, description="Fun commands."):
 
             await ctx.send(embed=discord.Embed(title="Zen | Fun",
                                            description=f"""The eight ball has spoken, the answer is: {possibilities(rng)}"""))
-
-    # @eightball.error
-    # async def eightball_error(ctx, error):
-    #     if isinstance(error, commands.MissingRequiredArgument):
-    #         await ctx.send(embed=discord.Embed(title="Zen | Fun",
-    #                                        description="You are missing a question, try again"))
 
 
 async def setup(client):
