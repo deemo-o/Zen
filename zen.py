@@ -97,7 +97,8 @@ logger.addHandler(handler)
 client = commands.Bot(
     command_prefix="#",
     help_command=Help(),
-    intents=discord.Intents.all())
+    intents=discord.Intents.all(),
+    case_insensitive=True)
 
 @client.event
 async def on_ready():
