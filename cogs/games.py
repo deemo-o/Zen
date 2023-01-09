@@ -228,8 +228,7 @@ class Games(commands.Cog, description="Games commands."):
                 player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
                 battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
                 battleship_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
-                await ctx.send(
-                    f"{ctx.author.mention}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{member.mention}'s rating change: {player2_rating} - > {round(player2_new_rating)}")
+                await ctx.send(f"{ctx.author.mention}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{member.mention}'s rating change: {player2_rating} - > {round(player2_new_rating)}")
                 return
 
             await ctx.author.send(f"It's {member.mention}'s turn!")
@@ -330,8 +329,7 @@ class Games(commands.Cog, description="Games commands."):
                 player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
                 battleship_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
                 battleship_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
-                await ctx.send(
-                    f"{member.mention}'s rating change: {player2_rating} -> {round(player2_new_rating)}\n{ctx.author.mention}'s rating change: {player1_rating} - > {round(player1_new_rating)}")
+                await ctx.send(f"{member.mention}'s rating change: {player2_rating} -> {round(player2_new_rating)}\n{ctx.author.mention}'s rating change: {player1_rating} - > {round(player1_new_rating)}")
                 return
 
             await member.send(f"It's {ctx.author.mention}'s turn!")
@@ -426,8 +424,7 @@ class Games(commands.Cog, description="Games commands."):
             if player2 == "The Zen Bot":
                 p2Move = botMoves[random.randint(1, 3)]
             else:
-                await member.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"),
-                                  delete_after=60)
+                await member.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
                 try:
                     p2Input = await self.client.wait_for("message", check=checkP2Move, timeout=60)
                     p2Move = playerMoves[p2Input.content.lower()]
@@ -461,8 +458,7 @@ class Games(commands.Cog, description="Games commands."):
         if p1Points != p2Points:
             await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{finalWinner} wins the game! Final Score: {max(p1Points, p2Points)} - {min(p1Points, p2Points)}"), delete_after=60)
         else:
-            await ctx.send(
-                embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"), delete_after=60)
+            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"), delete_after=60)
 
 
 async def setup(client):
