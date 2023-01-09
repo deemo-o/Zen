@@ -484,5 +484,6 @@ class Games(commands.Cog, description="Games commands."):
                 embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"),
                 delete_after=60)
 
+
 async def setup(client):
     await client.add_cog(Games(client))

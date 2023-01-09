@@ -192,6 +192,5 @@ class Fun(commands.Cog, description="Fun commands."):
             await ctx.send(embed=discord.Embed(title="Zen | Fun",
                                            description=f"""The eight ball has spoken, the answer is: {possibilities(rng)}"""))
 
-
 async def setup(client):
     await client.add_cog(Fun(client))
