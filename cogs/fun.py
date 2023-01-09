@@ -204,7 +204,7 @@ class Fun(commands.Cog, description="Fun commands."):
         async def ask_input(answer_for):
             if answer_for == 'source':
                 source_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Let's get started: \n
-                Type the ISO 639 code of the language your text is in (Most will be ISO 639-1, i.e 2 letters).\n
+                Type the two-letter abbreviation(some exceptions) of the language your text is in (Most will be ISO 639-1, i.e 2 letters).\n
                 Type "n", and I will do my best to detect the language myself.\n  
                 Type the language in whole if you don't know the code for your language, and I will check for you.\n
                 Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
@@ -212,7 +212,7 @@ class Fun(commands.Cog, description="Fun commands."):
                 await ctx.send(embed= source_language_input_explanation, delete_after=120)
             else:
                 destination_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Moving on: \n
-                Type the ISO 639 code of the language you wish to translate the text in.\n
+                Type the two-letter abbreviation(some exceptions) of the language you wish to translate the text in.\n
                 Type "n", and I will translate it into English by default.\n  
                 Type the language in whole if you don't know the code for the language, and I will check for you.\n
                 Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
@@ -241,7 +241,7 @@ class Fun(commands.Cog, description="Fun commands."):
                     return await ask_input(answer_for)
 
         async def get_text():
-            notification = discord.Embed(title="Zen | Translation", description="Woops! Don't forget to type in want you want me to translate next time. Type it in now, I'll note it dow.")
+            notification = discord.Embed(title="Zen | Translation", description="Woops! Don't forget to type in want you want me to translate next time. Type it in now, I'll note it down.")
             await ctx.send(embed=notification, delete_after=120)
             input_object = await self.client.wait_for("message", check=check, timeout=60)
             input = input_object.content
