@@ -206,7 +206,7 @@ class Fun(commands.Cog, description="Fun commands."):
                 source_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Let's get started: \n
                 Type the two-letter abbreviation(some exceptions) of the language your text is in (Most will be ISO 639-1, i.e 2 letters).\n
                 Type "n", and I will do my best to detect the language myself.\n  
-                Type the language in whole if you don't know the code for your language, and I will check for you.\n
+                Type the language in whole if you don't know the code for it, and I will check for you.\n
                 Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
                 Type "e" to exit.""")
                 await ctx.send(embed= source_language_input_explanation, delete_after=120)
@@ -214,7 +214,7 @@ class Fun(commands.Cog, description="Fun commands."):
                 destination_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Moving on: \n
                 Type the two-letter abbreviation(some exceptions) of the language you wish to translate the text in.\n
                 Type "n", and I will translate it into English by default.\n  
-                Type the language in whole if you don't know the code for the language, and I will check for you.\n
+                Type the language in whole if you don't know the code for it, and I will check for you.\n
                 Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
                 Type "e" to exit.""")
                 await ctx.send(embed=destination_language_input_explanation, delete_after=120)
