@@ -7,6 +7,9 @@ from discord import app_commands
 from PyDictionary import PyDictionary
 from wordhoard import Antonyms, Synonyms
 import Paginator
+import googletrans
+from googletrans import Translator
+import typing
 
 
 class Fun(commands.Cog, description="Fun commands."):
@@ -159,6 +162,115 @@ class Fun(commands.Cog, description="Fun commands."):
             embed = discord.Embed(title="Zen | Thesaurus", description=f"No antonyms were found for the word: {word}")
             await ctx.send(embed=embed)
 
+    @commands.command(aliases=["trans"], brief="Translates what the user inputs.", description="")
+    async def translate(self, ctx: commands.Context, *, text_to_translate: typing.Optional[str] = None):
+        user = ctx.author
+        translator = Translator()
+    
+        async def invalid_input_message():
+            error_message = discord.Embed(title="Zen | Translation", description="Couldn't find anything that matches your input. Try again.")
+            await ctx.send(embed=error_message, delete_after=120)
+
+        async def exit_message():
+            exit_message = discord.Embed(title="Zen | Translation", description="Exiting now. See you next time.")
+            await ctx.send(embed=exit_message, delete_after=120)
+
+        async def switch_to_default_input(input):
+            if input == 'source':
+                notification = discord.Embed(title="Zen | Translation", description="I will do my best to detect the language your text is in.")
+                await ctx.send(embed=notification, delete_after=120)
+                return 'auto'
+            else: 
+                notification = discord.Embed(title="Zen | Translation", description="Your text will be translated into English.")
+                await ctx.send(embed=notification, delete_after=120)
+                return 'en'
+
+        def print_all_languages(languages):
+            pages=[]
+            field = ""
+            field_count = 0
+            page = discord.Embed(title=f"Zen | Translation")
+            for index, (language, iso_code) in enumerate(languages.items()):
+                if index % 20 == 0 and index != 0:
+                    page.add_field(name='Languages', value=field, inline=True)
+                    field_count += 1
+                    if field_count == 2:
+                        field_count = 0
+                        pages.append(page)
+                        page = discord.Embed(title=f"Zen | Translation")
+                        field = "" + f"{language} : {iso_code}\n"
+                    else: 
+                        page.add_field(name=chr(173), value=chr(173), inline=True)
+                        field = "" + f"{language} : {iso_code}\n"
+                else:
+                    field += f"{language} : {iso_code}\n"
+            return pages
+
+        def check(msg):
+            return msg.channel == ctx.channel and msg.author == user
+
+        async def ask_input(answer_for):
+            if answer_for == 'source':
+                source_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Let's get started: \n
+                Type the two-letter abbreviation(some exceptions) of the language your text is in (Most will be ISO 639-1, i.e 2 letters).\n
+                Type "n", and I will do my best to detect the language myself.\n  
+                Type the language in whole if you don't know the code for it, and I will check for you.\n
+                Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
+                Type "e" to exit.""")
+                await ctx.send(embed= source_language_input_explanation, delete_after=120)
+            else:
+                destination_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Moving on: \n
+                Type the two-letter abbreviation(some exceptions) of the language you wish to translate the text in.\n
+                Type "n", and I will translate it into English by default.\n  
+                Type the language in whole if you don't know the code for it, and I will check for you.\n
+                Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
+                Type "e" to exit.""")
+                await ctx.send(embed=destination_language_input_explanation, delete_after=120)
+
+            input_object = await self.client.wait_for("message", check=check, timeout=60)
+            input = input_object.content.lower()
+            
+            if input in ['e', 'exit']:
+                await exit_message()
+            elif input in ["n", "none"]:
+                return await switch_to_default_input(answer_for)
+            elif input in ["a", "all"]:
+                await Paginator.Simple().start(ctx, pages=print_all_languages(googletrans.LANGCODES))
+                return await ask_input(answer_for)
+            else:
+                if input in googletrans.LANGUAGES:
+                    return input
+                elif input in googletrans.LANGCODES:
+                    await ctx.send(embed=discord.Embed(title="Zen | Translation", description=f"Found it! {input} : {googletrans.LANGCODES[input]}"), delete_after=120)
+                    input = googletrans.LANGCODES[input]
+                    return input 
+                else:
+                    await invalid_input_message()
+                    return await ask_input(answer_for)
+
+        async def get_text():
+            notification = discord.Embed(title="Zen | Translation", description="Woops! Don't forget to type in want you want me to translate next time. Type it in now, I'll note it down.")
+            await ctx.send(embed=notification, delete_after=120)
+            input_object = await self.client.wait_for("message", check=check, timeout=60)
+            input = input_object.content
+            return input
+
+        async def translate_text(original_text, source, destination):
+            translate_object = translator.translate(original_text, src=source, dest=destination)
+            result, pronounciation = translate_object.text, translate_object.pronunciation 
+            await ctx.send(embed=discord.Embed(title="Zen | Translation", description=f"{original_text}\n> {result}\n> {pronounciation}"), delete_after=120)
+
+        async def start():
+            source_language = await ask_input('source')
+            if not source_language: return
+            destination_language = await ask_input('destination')
+            if not destination_language: return
+            await translate_text(text_to_translate, source_language, destination_language)
+
+        if not text_to_translate:
+                text_to_translate = await get_text()
+        await start()
+            
     @app_commands.command(name="coinflip")
     async def slash_coinflip(self, interaction: discord.Interaction):
         if random.randint(0, 1) == 0:
