@@ -484,29 +484,5 @@ class Games(commands.Cog, description="Games commands."):
                 embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"),
                 delete_after=60)
 
-
-    @commands.command(alias=["8ball"], brief="Ask a question, and get an answer from the 8ball",
-                      description="""This command will take in a prompt and return the probability of it happening""")
-    async def eightball(self, arg, ctx: commands.Context, member: discord.Member = None):
-        print(arg)
-        rng = random(1, 8)
-
-        def possibilities(number):
-            switcher ={
-                1: "Definately a no!",
-                2: "No.",
-                3: "I don't know about that chief!",
-                4: "Ouh, that is risky!",
-                5: "Maybe!",
-                6: "Most likely!",
-                7: "Yes!",
-                8: "HELL YEAH!",
-            }
-
-            return switcher.get(number, "Nothing")
-
-        await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""The eight ball has spoken, the answer is: {possibilities(rng)}"""))
-
-
 async def setup(client):
     await client.add_cog(Games(client))
