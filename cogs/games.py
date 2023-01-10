@@ -6,13 +6,13 @@ from discord import app_commands
 from games_utils import battleship_dboperations
 import random
 import asyncio
- 
+
 class Games(commands.Cog, description="Games commands."):
-    
+
     def __init__(self, client: commands.Bot):
         self.client = client
         self.connection = battleship_dboperations.connection()
-        
+
     def games_embed(self, ctx: commands.Context) -> discord.Embed:
         embed = discord.Embed(title="Zen | Games", color=ctx.author.color)
         return embed
@@ -44,7 +44,11 @@ class Games(commands.Cog, description="Games commands."):
     async def battleship(self, ctx: commands.Context, member: discord.Member):
         player1_board = [[0 for _ in range(10)] for _ in range(10)]
         player2_board = [[0 for _ in range(10)] for _ in range(10)]
-        coordinates = [[":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_c:", ":regional_indicator_d:", ":regional_indicator_e:", ":regional_indicator_f:", ":regional_indicator_g:", ":regional_indicator_h:", ":regional_indicator_i:", ":regional_indicator_j:"], [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"]]
+        coordinates = [
+            [":regional_indicator_a:", ":regional_indicator_b:", ":regional_indicator_c:", ":regional_indicator_d:",
+             ":regional_indicator_e:", ":regional_indicator_f:", ":regional_indicator_g:", ":regional_indicator_h:",
+             ":regional_indicator_i:", ":regional_indicator_j:"],
+            [":one:", ":two:", ":three:", ":four:", ":five:", ":six:", ":seven:", ":eight:", ":nine:", ":keycap_ten:"]]
         string_numbers = ""
         for x in range(len(coordinates[1])):
             string_numbers += coordinates[1][x]
@@ -64,7 +68,7 @@ class Games(commands.Cog, description="Games commands."):
                     if col + size > 10:
                         fits = False
                     else:
-                        for i in range(col, col+size):
+                        for i in range(col, col + size):
                             if player1_board[row][i] != 0:
                                 fits = False
                                 break
@@ -72,18 +76,18 @@ class Games(commands.Cog, description="Games commands."):
                     if row + size > 10:
                         fits = False
                     else:
-                        for i in range(row, row+size):
+                        for i in range(row, row + size):
                             if player1_board[i][col] != 0:
                                 fits = False
                                 break
                 if fits:
                     occupied_coords = []
                     if orientation == 'horizontal':
-                        for i in range(col, col+size):
+                        for i in range(col, col + size):
                             player1_board[row][i] = 1
                             occupied_coords.append((row, i))
                     else:  # orientation == 'vertical'
-                        for i in range(row, row+size):
+                        for i in range(row, row + size):
                             player1_board[i][col] = 1
                             occupied_coords.append((i, col))
                     player1_ships.append(occupied_coords)
@@ -102,7 +106,7 @@ class Games(commands.Cog, description="Games commands."):
                     if col + size > 10:
                         fits = False
                     else:
-                        for i in range(col, col+size):
+                        for i in range(col, col + size):
                             if player2_board[row][i] != 0:
                                 fits = False
                                 break
@@ -110,18 +114,18 @@ class Games(commands.Cog, description="Games commands."):
                     if row + size > 10:
                         fits = False
                     else:
-                        for i in range(row, row+size):
+                        for i in range(row, row + size):
                             if player2_board[i][col] != 0:
                                 fits = False
                                 break
                 if fits:
                     occupied_coords = []
                     if orientation == 'horizontal':
-                        for i in range(col, col+size):
+                        for i in range(col, col + size):
                             player2_board[row][i] = 1
                             occupied_coords.append((row, i))
                     else:  # orientation == 'vertical'
-                        for i in range(row, row+size):
+                        for i in range(row, row + size):
                             player2_board[i][col] = 1
                             occupied_coords.append((i, col))
                     player2_ships.append(occupied_coords)
@@ -130,6 +134,7 @@ class Games(commands.Cog, description="Games commands."):
         while True:
             player1_win = False
             player2_win = False
+
             def display_player1_board():
                 player1_board_message = ""
                 for i in range(len(player1_board)):
@@ -146,7 +151,7 @@ class Games(commands.Cog, description="Games commands."):
                         if player1_board[i][j] == 0:
                             player1_board_message += ":blue_square:"
                 return player1_board_message
-            
+
             def display_player1_opponent_board():
                 player1_opponent_board_message = ""
                 for i in range(len(player2_board)):
@@ -162,7 +167,7 @@ class Games(commands.Cog, description="Games commands."):
                         else:
                             player1_opponent_board_message += ":blue_square:"
                 return player1_opponent_board_message
-            
+
             await ctx.author.send(f"Your board {ctx.author.mention}:")
             await ctx.author.send(f"<:zen:1061021427718950954>{string_numbers}{display_player1_board()}")
             await ctx.author.send(f"{member.mention}'s board:")
@@ -181,7 +186,7 @@ class Games(commands.Cog, description="Games commands."):
                     y = int(m.content[1]) - 1
                     if player2_board[x][y] != 2 and player2_board[x][y] != 3:
                         return m.author == ctx.author
-            
+
             try:
                 response = await self.client.wait_for("message", check=check, timeout=60.0)
             except asyncio.TimeoutError:
@@ -202,7 +207,7 @@ class Games(commands.Cog, description="Games commands."):
             else:
                 player2_board[x][y] = 3
                 await ctx.author.send(f"You didn't hit anything on {response.content[0].upper()}{y + 1}.")
-            
+
             await asyncio.sleep(1)
 
             for x in range(len(player2_ships[0])):
@@ -212,7 +217,7 @@ class Games(commands.Cog, description="Games commands."):
                     continue
                 else:
                     player1_win = False
-            
+
             if player1_win:
                 await ctx.send(f"{ctx.author.mention} won the game!", delete_after=30)
                 player1_rating = battleship_dboperations.get_rating(self.connection, ctx.author.id)
@@ -228,7 +233,7 @@ class Games(commands.Cog, description="Games commands."):
 
             await ctx.author.send(f"It's {member.mention}'s turn!")
 
-            #player2's turn
+            # player2's turn
             def display_player2_board():
                 player2_board_message = ""
                 for i in range(len(player2_board)):
@@ -280,7 +285,7 @@ class Games(commands.Cog, description="Games commands."):
                     y = int(m.content[1]) - 1
                     if player1_board[x][y] != 2 and player1_board[x][y] != 3:
                         return m.author == member
-            
+
             try:
                 response = await self.client.wait_for("message", check=check, timeout=60.0)
             except asyncio.TimeoutError:
@@ -301,7 +306,7 @@ class Games(commands.Cog, description="Games commands."):
             else:
                 player1_board[x][y] = 3
                 await member.send(f"You didn't hit anything on {response.content[0].upper()}{y + 1}.")
-            
+
             await asyncio.sleep(1)
 
             for x in range(len(player1_ships[0])):
@@ -328,24 +333,25 @@ class Games(commands.Cog, description="Games commands."):
                 return
 
             await member.send(f"It's {ctx.author.mention}'s turn!")
-    
+
     @commands.command(aliases=["rps"], brief="Play Rock-Paper-Scissors, Best of 5", description="""This command will allow you to play a 
     Rock-Paper-Scissors match, @ a user after the command to play against them or you will be matched against the infamous Zen Bot.""")
-    async def rockpaperscissors(self, ctx: commands.Context, member: discord.Member = None): 
+    async def rockpaperscissors(self, ctx: commands.Context, member: discord.Member = None):
         timeOutEmbed = discord.Embed(title="Zen | Games", description="Too long! Game cancelled.")
-        botMoves  = {
-            1 : 'Rock',
-            2 : 'Paper',
-            3 : 'Scissors'
+        botMoves = {
+            1: 'Rock',
+            2: 'Paper',
+            3: 'Scissors'
         }
         playerMoves = {
             'r': 'Rock',
             'rock': 'Rock',
-            'p' : 'Paper',
-            'paper' : 'Paper',
-            's' : 'Scissors',
-            'scissors' : 'Scissors'
+            'p': 'Paper',
+            'paper': 'Paper',
+            's': 'Scissors',
+            'scissors': 'Scissors'
         }
+
         def checkAnswer(answer):
             if answer.content.lower() in ["y", "yes", "n", "no"] and answer.channel == ctx.channel:
                 return True
@@ -364,44 +370,42 @@ class Games(commands.Cog, description="Games commands."):
             if p1Move == 'Rock':
                 if p2Move == "Paper":
                     return player2
-                else: 
+                else:
                     return player1
             if p1Move == 'Paper':
                 if p2Move == "Scissors":
                     return player2
-                else: 
+                else:
                     return player1
             if p1Move == 'Scissors':
                 if p2Move == "Rock":
                     return player2
-                else: 
+                else:
                     return player1
 
         player1 = ctx.author.name
-        
+
         if member is None:
-            player2 = "The Zen Bot" 
+            player2 = "The Zen Bot"
         elif member == ctx.author:
-            await ctx.send(embed=discord.Embed(title="Zen | Games", description = f"{player1} will play against {player1}! ... Wait, no..."), delete_after=60)
+            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{player1} will play against {player1}! ... Wait, no..."), delete_after=60)
             return
-        else: 
+        else:
             player2 = member.name
-            await ctx.send(embed=discord.Embed(title= "Zen | Games", description = f"""{member.mention}, You have been challenged to a game of 
-            Rock-Paper-Scissors by {player1}! Do you accept? (y/n)"""), delete_after=60)
+            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""{member.mention}, You have been challenged to a game of Rock-Paper-Scissors by {player1}! Do you accept? (y/n)"""), delete_after=60)
             try:
-                ans = await self.client.wait_for('message', check=checkAnswer, timeout = 60)
+                ans = await self.client.wait_for('message', check=checkAnswer, timeout=60)
             except asyncio.TimeoutError:
                 await ctx.send(embed=timeOutEmbed, delete_after=60)
                 return
-            if ans.content.lower() in ["y", "yes",]:
-                await ctx.send(embed=discord.Embed(title="Zen | Games", description =f"{ans.author.name} has accepted the challenge!"), delete_after=60)
+            if ans.content.lower() in ["y", "yes", ]:
+                await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{ans.author.name} has accepted the challenge!"), delete_after=60)
             else:
-                await ctx.send(embed=discord.Embed(title="Zen | Games", description =f"{ans.author.name} has declined the challenge!"), delete_after=60)
+                await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{ans.author.name} has declined the challenge!"), delete_after=60)
                 return
 
-        await ctx.send(embed=discord.Embed(title="Zen | Games", description =f"""Starting a game of Rock-Paper-Scissors... 
-        {player1} will be matched against {player2}. Each player will be privately messaged to get their weapon of choice."""), delete_after=60)
-        
+        await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""Starting a game of Rock-Paper-Scissors... {player1} will be matched against {player2}. Each player will be privately messaged to get their weapon of choice."""), delete_after=60)
+
         chooseMove = "Choose between: Rock('r'), Paper('p'), or Scissors('s')"
         p1Points = 0
         p2Points = 0
@@ -411,7 +415,7 @@ class Games(commands.Cog, description="Games commands."):
         while p1Points < 2 or p2Points < 2:
             await ctx.author.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
             try:
-                p1Input = await self.client.wait_for("message", check=checkP1Move, timeout = 60)
+                p1Input = await self.client.wait_for("message", check=checkP1Move, timeout=60)
                 p1Move = playerMoves[p1Input.content.lower()]
             except asyncio.TimeoutError:
                 await ctx.send(embed=timeOutEmbed, delete_after=60)
@@ -422,12 +426,12 @@ class Games(commands.Cog, description="Games commands."):
             else:
                 await member.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
                 try:
-                    p2Input = await self.client.wait_for("message", check=checkP2Move, timeout = 60)
+                    p2Input = await self.client.wait_for("message", check=checkP2Move, timeout=60)
                     p2Move = playerMoves[p2Input.content.lower()]
                 except asyncio.TimeoutError:
                     await ctx.send(embed=timeOutEmbed, delete_after=60)
                     return
-            
+
             winner = checkWinner(p1Move, p2Move)
             if winner == player1:
                 p1Points += 1
@@ -442,7 +446,7 @@ class Games(commands.Cog, description="Games commands."):
             await ctx.author.send(embed=roundEmbed, delete_after=60)
             if player2 != "The Zen Bot":
                 await member.send(embed=roundEmbed, delete_after=60)
-            
+
             if p1Points == 2:
                 finalWinner = player1
                 break
@@ -450,11 +454,12 @@ class Games(commands.Cog, description="Games commands."):
                 finalWinner = player2
                 break
             round += 1
-        
+
         if p1Points != p2Points:
             await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{finalWinner} wins the game! Final Score: {max(p1Points, p2Points)} - {min(p1Points, p2Points)}"), delete_after=60)
-        else: 
+        else:
             await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"), delete_after=60)
+
 
 async def setup(client):
     await client.add_cog(Games(client))

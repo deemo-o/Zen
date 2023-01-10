@@ -11,15 +11,16 @@ import googletrans
 from googletrans import Translator
 import typing
 
+
 class Fun(commands.Cog, description="Fun commands."):
-    
+
     def __init__(self, client: commands.Bot):
         self.client = client
-    
+
     def getSynOrAnt(self, method, word):
         methods = {
-            "synonym" : Synonyms(search_string=word).find_synonyms(),
-            "antonym" : Antonyms(search_string=word).find_antonyms()
+            "synonym": Synonyms(search_string=word).find_synonyms(),
+            "antonym": Antonyms(search_string=word).find_antonyms()
         }
         if "Please verify that the word is spelled correctly." in methods[method]:
             raise Exception
@@ -36,7 +37,7 @@ class Fun(commands.Cog, description="Fun commands."):
                 field.append(result)
                 if index == len(results) - 1:
                     fields.append(field)
-                    field = []  
+                    field = []
             else:
                 fields.append(field)
                 field = []
@@ -45,14 +46,15 @@ class Fun(commands.Cog, description="Fun commands."):
             page = discord.Embed(title=f"Zen | Thesaurus")
             page.add_field(name="Word", value=f"{word.title()}", inline=False)
             page.add_field(name=f"{title}", value=f"{', '.join(field)}", inline=False)
-            embeds.append(page)     
+            embeds.append(page)
         return embeds
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("Fun module has been loaded.")
 
-    @commands.command(brief="Gets a GIF of a hug from an anime", description="This command will display a GIF of a hug from a random anime")
+    @commands.command(brief="Gets a GIF of a hug from an anime",
+                      description="This command will display a GIF of a hug from a random anime")
     async def animehug(self, ctx: commands.Context):
         async with aiohttp.ClientSession() as session:
             async with session.get("https://some-random-api.ml/animu/hug") as response:
@@ -60,7 +62,8 @@ class Fun(commands.Cog, description="Fun commands."):
                     data = await response.json()
                     await ctx.send(data["link"])
 
-    @commands.command(brief="Gets a GIF of a facepalm from an anime", description="This command will get a GIF of a facepalm from a random anime")
+    @commands.command(brief="Gets a GIF of a facepalm from an anime",
+                      description="This command will get a GIF of a facepalm from a random anime")
     async def facepalm(self, ctx: commands.Context):
         async with aiohttp.ClientSession() as session:
             async with session.get("https://some-random-api.ml/animu/face-palm") as response:
@@ -68,7 +71,8 @@ class Fun(commands.Cog, description="Fun commands."):
                     data = await response.json()
                     await ctx.send(data["link"])
 
-    @commands.command(brief="Gets a random quote from an anime", description="This command will get a random quote from an anime")
+    @commands.command(brief="Gets a random quote from an anime",
+                      description="This command will get a random quote from an anime")
     async def animequote(self, ctx: commands.Context):
         async with aiohttp.ClientSession() as session:
             async with session.get("https://some-random-api.ml/animu/quote") as response:
@@ -79,10 +83,11 @@ class Fun(commands.Cog, description="Fun commands."):
                     embed.description = f"{data['sentence']}"
                     embed.add_field(name="By", value=data["character"], inline=True)
                     embed.add_field(name="From", value=data["anime"], inline=True)
-                    
+
                     await ctx.send(embed=embed)
 
-    @commands.command(brief="Uploads an image with the specified quote with an oogway template", description="This command will upload an image with the quote you specified with an oogway template")
+    @commands.command(brief="Uploads an image with the specified quote with an oogway template",
+                      description="This command will upload an image with the quote you specified with an oogway template")
     async def oogway(self, ctx: commands.Context, *, quote: str):
         choices = ["oogway", "oogway2"]
         choice = choices[random.randint(0, 1)]
@@ -92,7 +97,8 @@ class Fun(commands.Cog, description="Fun commands."):
                     data = io.BytesIO(await response.read())
                     await ctx.send(file=discord.File(data, "oogway_quote.png"))
 
-    @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.", description="This command will get the definition(s) of the word you specified.")
+    @commands.command(aliases=["dict"], brief="Gets the definition(s) of the specified word.",
+                      description="This command will get the definition(s) of the word you specified.")
     async def dictionary(self, ctx: commands.Context, *, word: str):
         dictionary = PyDictionary()
         definitions = dictionary.meaning(word)
@@ -134,7 +140,8 @@ class Fun(commands.Cog, description="Fun commands."):
 
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["syn"], brief="Gets the synonym(s) of the specified word.", description="This command will get the synonym(s) of the word you specified.")
+    @commands.command(aliases=["syn"], brief="Gets the synonym(s) of the specified word.",
+                      description="This command will get the synonym(s) of the word you specified.")
     async def synonym(self, ctx: commands.Context, *, word: str):
         try:
             results = self.getSynOrAnt("synonym", word)
@@ -143,8 +150,9 @@ class Fun(commands.Cog, description="Fun commands."):
         except:
             embed = discord.Embed(title="Zen | Thesaurus", description=f"No synonyms were found for the word: {word}")
             await ctx.send(embed=embed)
-            
-    @commands.command(aliases=["ant"], brief="Gets the antonym(s) of the specified word.", description="This command will get the antonym(s) of the word you specified.")
+
+    @commands.command(aliases=["ant"], brief="Gets the antonym(s) of the specified word.",
+                      description="This command will get the antonym(s) of the word you specified.")
     async def antonym(self, ctx: commands.Context, *, word: str):
         try:
             results = self.getSynOrAnt("antonym", word)
@@ -269,6 +277,32 @@ class Fun(commands.Cog, description="Fun commands."):
             await interaction.response.send_message("Heads", ephemeral=True)
         elif random.randint(0, 1) == 1:
             await interaction.response.send_message("Tails", ephemeral=True)
+
+    @commands.command(aliases=["8ball"], brief="Ask a question, and get an answer from the 8ball",
+                      description="This command will take in a prompt and return the probability of it happening")
+    async def eightball(self, ctx: commands.Context, *, arg=None):
+        if arg is None:
+            await ctx.send(embed=discord.Embed(title="Zen | Fun",
+                                               description="Seems to me that you forgot to ask your question...Try again!"))
+        else:
+            rng = random.randrange(1, 8)
+
+            def possibilities(number):
+                switcher = {
+                    1: "Definately a no!",
+                    2: "No.",
+                    3: "I don't know about that chief!",
+                    4: "Ouh, that is risky!",
+                    5: "Maybe!",
+                    6: "Most likely!",
+                    7: "Yes!",
+                    8: "HELL YEAH!",
+                }
+
+                return switcher.get(number, "Nothing")
+
+            await ctx.send(embed=discord.Embed(title="Zen | Fun",
+                                           description=f"""The eight ball has spoken, the answer is: {possibilities(rng)}"""))
 
 async def setup(client):
     await client.add_cog(Fun(client))
