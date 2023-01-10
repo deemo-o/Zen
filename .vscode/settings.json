@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./cogs/yugioh.utils",
+        "./yugioh.utils"
+    ]
+}
