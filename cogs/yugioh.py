@@ -5,6 +5,7 @@ import Paginator
 from discord.ext import commands
 from discord import app_commands
 from yugioh_utils import yugioh_operations
+from database_utils import yugioh_database
  
 class Yugioh(commands.Cog, description="Yugioh commands."):
     
@@ -27,9 +28,10 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                     card_str += card[i] + " "
                 else:
                     card_str += card[i]
-
+            found = False
             async with session.get(f"https://db.ygoprodeck.com/api/v7/cardinfo.php?name={card_str}") as response:
                 if response.status == 200:
+                    found = True
                     data = await response.json()
 
                     lvl, xyzlvl = '<:level:1059718470448730192>', '<:blacklevel:1059725946258739231>'
@@ -97,36 +99,79 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                     else:
                         mstype = "/Normal"
 
-                
-            #API from http://yugiohprices.com 
-            async with session.get(f"https://yugiohprices.com/api/get_card_prices/{card_str}") as response:
-                if response.status == 200:
-                    embed2 = discord.Embed(
-                        title="Card Sets",
-                        color=0x1abc9c
-                    )
-                    data2 = await response.json()
-                    if data2['status'] == "success":
-                        for i in range(len(data2['data'])):
-                            if data2['data'][i]['price_data']['status'] == "success":
-                                embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **${data2['data'][i]['price_data']['data']['prices']['low']}**\nHighest: **${data2['data'][i]['price_data']['data']['prices']['high']}\n**Average**: ${data2['data'][i]['price_data']['data']['prices']['average']}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
-                                
-                    embed2.set_image(url= "https://static.wikia.nocookie.net/p__/images/2/2f/Winged-Kuriboh.png/revision/latest?cb=20161213005825&path-prefix=protagonist")
-                    embed2.set_thumbnail(url="https://i.gifer.com/origin/e0/e02ce86bcfd6d1d6c2f775afb3ec8c01_w200.gif")
-                    
-                    embeds = [embed,embed2,]
+                else:
+                    embed = discord.Embed(title="Oops! An error occured...",
+                                        color=0x1abc9c,     
+                                        description="Can't find the following card: **{}**".format(card_str))
+                    embed.set_image(url="https://i.pinimg.com/originals/2e/55/85/2e5585721617cb5d596f24b4cf28c0b6.gif")
+
+            if found == True:    
+                embeds = []
+                #API from http://yugiohprices.com 
+                async with session.get(f"https://yugiohprices.com/api/get_card_prices/{card_str}") as response:
+                    if response.status == 200:
+                        
+                        embeds.append(embed)
+                        data2 = await response.json()
+                        if data2['status'] == "success":
+                            embed2 = discord.Embed(
+                            title="Card Sets",
+                            color=0x1abc9c
+                        )
+                            for i in range(len(data2['data'])):
+                                if (i + 1) % 5 > 0:
+                                    if data2['data'][i]['price_data']['status'] == "success":
+                                        embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **${data2['data'][i]['price_data']['data']['prices']['low']}**\nHighest: **${data2['data'][i]['price_data']['data']['prices']['high']}\n**Average**: ${data2['data'][i]['price_data']['data']['prices']['average']}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
+                                        if i == len(data2['data'])-1:
+                                            embed2.set_image(url= "https://static.wikia.nocookie.net/p__/images/2/2f/Winged-Kuriboh.png/revision/latest?cb=20161213005825&path-prefix=protagonist")
+                                            embed2.set_thumbnail(url="https://i.gifer.com/origin/e0/e02ce86bcfd6d1d6c2f775afb3ec8c01_w200.gif")
+                                            embeds.append(embed2)
+                                            embed2 = discord.Embed(
+                                                title="Card Sets",
+                                                color=0x1abc9c
+                                            )
+                                    if data2['data'][i]['price_data']['status'] == "fail":
+                                        embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n **{data2['data'][i]['price_data']['message']}** 🥹", inline=False)
+                                        if i == len(data2['data'])-1:
+                                            embed2.set_image(url= "https://static.wikia.nocookie.net/p__/images/2/2f/Winged-Kuriboh.png/revision/latest?cb=20161213005825&path-prefix=protagonist")
+                                            embed2.set_thumbnail(url="https://i.gifer.com/origin/e0/e02ce86bcfd6d1d6c2f775afb3ec8c01_w200.gif")
+                                            embeds.append(embed2)
+                                            embed2 = discord.Embed(
+                                                title="Card Sets",
+                                                color=0x1abc9c
+                                            )
+                                else:
+                                    if data2['data'][i]['price_data']['status'] == "success":
+                                            embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **${data2['data'][i]['price_data']['data']['prices']['low']}**\nHighest: **${data2['data'][i]['price_data']['data']['prices']['high']}\n**Average**: ${data2['data'][i]['price_data']['data']['prices']['average']}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
+                                    
+                                    if data2['data'][i]['price_data']['status'] == "fail":
+                                        embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n **{data2['data'][i]['price_data']['message']}** 🥹", inline=False)
+
+                                    embed2.set_image(url= "https://static.wikia.nocookie.net/p__/images/2/2f/Winged-Kuriboh.png/revision/latest?cb=20161213005825&path-prefix=protagonist")
+                                    embed2.set_thumbnail(url="https://i.gifer.com/origin/e0/e02ce86bcfd6d1d6c2f775afb3ec8c01_w200.gif")
+                                    embeds.append(embed2)
+                                    embed2 = discord.Embed(
+                                        title="Card Sets",
+                                        color=0x1abc9c
+                                    )
+
+
                     PreviousButton = discord.ui.Button(emoji='⬅️')
                     NextButton = discord.ui.Button(emoji='➡️')
                     PageCounterStyle = discord.ButtonStyle(value=2)
                     InitialPage = 0
                     timeout = 42069 
 
+                    # yugioh_database.connection()
+                    
                     await Paginator.Simple(
                         PreviousButton=PreviousButton,
                         NextButton=NextButton,
                         PageCounterStyle=PageCounterStyle,
                         InitialPage=InitialPage,
                         timeout=timeout).start(ctx, pages=embeds)
-
+            else:
+                    await ctx.send(embed=embed)
+                    
 async def setup(client):
     await client.add_cog(Yugioh(client))

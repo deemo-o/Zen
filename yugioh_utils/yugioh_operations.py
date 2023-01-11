@@ -75,7 +75,7 @@ def getricon(race,ricon):
         ricon.append(counter)
     elif race == "Ritual":
         ricon.append(ritual)
-    elif race == "Quick Play":
+    elif race == "Quick-Play":
         ricon.append(quick_play)
     elif race == "Normal":
         ricon.append("")
