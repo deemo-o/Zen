@@ -3,7 +3,7 @@
 [![Python 3](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/)
 
 ## About
-Discord bot tailored to the needs of the Zen Center🍃 discord server, a fun little project that we are working on. Zen is made using discord.py, an async ready API wrapper for Discord, and is currently under development.
+Discord bot tailored to the needs of the Zen Center🍃 discord server, a fun little project that we are working on. Zen is made using discord.py, an async-ready API wrapper for Discord, and is currently under development.
 
 ## Modules
 - Fun (fun commands)
