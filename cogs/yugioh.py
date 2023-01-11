@@ -2,6 +2,7 @@ import json
 import discord
 import aiohttp
 import Paginator
+from forex_python.converter import CurrencyRates
 from discord.ext import commands
 from discord import app_commands
 from yugioh_utils import yugioh_operations
@@ -22,6 +23,8 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
     @commands.command(aliases=["scn"], brief="Searches a card by name.", description="A command that helps you search a Yugioh card.")
     async def searchcard(self, ctx: commands.Context, *card: str):
         card_str = ""
+        c = CurrencyRates()
+        cex = c.get_rate("USD","CAD")
         async with aiohttp.ClientSession() as session: 
             for i in range(len(card)):
                 if card[i] != card[len(card)-1]:
@@ -42,7 +45,6 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                     yugioh_operations.getricon(race,ricon)
                     
                     if "Monster" in data['data'][0]['type']:
-                        print("hello", data['data'][0]['type'])
                         att = data['data'][0]['attribute']
 
                         yugioh_operations.getattricon(att, attricon)
@@ -121,7 +123,11 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                             for i in range(len(data2['data'])):
                                 if (i + 1) % 5 > 0:
                                     if data2['data'][i]['price_data']['status'] == "success":
-                                        embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **${data2['data'][i]['price_data']['data']['prices']['low']}**\nHighest: **${data2['data'][i]['price_data']['data']['prices']['high']}\n**Average**: ${data2['data'][i]['price_data']['data']['prices']['average']}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
+                                        clow = '%.2f' % (cex * data2['data'][i]['price_data']['data']['prices']['low'])
+                                        chigh = '%.2f' % (cex * data2['data'][i]['price_data']['data']['prices']['high'])
+                                        cavg = '%.2f' % (cex * data2['data'][i]['price_data']['data']['prices']['average'])
+                                        
+                                        embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **US${data2['data'][i]['price_data']['data']['prices']['low']} | C${str(clow)}**\nHighest: **US${data2['data'][i]['price_data']['data']['prices']['high']} | C${str(chigh)}\n**Average**: US${data2['data'][i]['price_data']['data']['prices']['average']} | C${str(cavg)}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
                                         if i == len(data2['data'])-1:
                                             embed2.set_image(url= "https://static.wikia.nocookie.net/p__/images/2/2f/Winged-Kuriboh.png/revision/latest?cb=20161213005825&path-prefix=protagonist")
                                             embed2.set_thumbnail(url="https://i.gifer.com/origin/e0/e02ce86bcfd6d1d6c2f775afb3ec8c01_w200.gif")
@@ -142,7 +148,7 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                                             )
                                 else:
                                     if data2['data'][i]['price_data']['status'] == "success":
-                                            embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **${data2['data'][i]['price_data']['data']['prices']['low']}**\nHighest: **${data2['data'][i]['price_data']['data']['prices']['high']}\n**Average**: ${data2['data'][i]['price_data']['data']['prices']['average']}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
+                                            embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n**Lowest: **US${data2['data'][i]['price_data']['data']['prices']['low']} | C${str(clow)}**\nHighest: **US${data2['data'][i]['price_data']['data']['prices']['high']} | C${str(chigh)}\n**Average**: US${data2['data'][i]['price_data']['data']['prices']['average']} | C${str(cavg)}\nLast updated on {data2['data'][i]['price_data']['data']['prices']['updated_at']}", inline=False)
                                     
                                     if data2['data'][i]['price_data']['status'] == "fail":
                                         embed2.add_field(name=data2['data'][i]['name'], value=f"{data2['data'][i]['print_tag']}\n{data2['data'][i]['rarity']}\n **{data2['data'][i]['price_data']['message']}** 🥹", inline=False)
