@@ -10,6 +10,7 @@ import Paginator
 import googletrans
 from googletrans import Translator
 import typing
+import asyncio
 
 
 class Fun(commands.Cog, description="Fun commands."):
@@ -166,6 +167,8 @@ class Fun(commands.Cog, description="Fun commands."):
     async def translate(self, ctx: commands.Context, *, text_to_translate: typing.Optional[str] = None):
         user = ctx.author
         translator = Translator()
+
+        timeOutEmbed = discord.Embed(title="Zen | Translation", description="Too long! Exiting now.")
     
         async def invalid_input_message():
             error_message = discord.Embed(title="Zen | Translation", description="Couldn't find anything that matches your input. Try again.")
@@ -209,50 +212,58 @@ class Fun(commands.Cog, description="Fun commands."):
         def check(msg):
             return msg.channel == ctx.channel and msg.author == user
 
-        async def ask_input(answer_for):
-            if answer_for == 'source':
-                source_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Let's get started: \n
-                Type the two-letter abbreviation(some exceptions) of the language your text is in (Most will be ISO 639-1, i.e 2 letters).\n
-                Type "n", and I will do my best to detect the language myself.\n  
-                Type the language in whole if you don't know the code for it, and I will check for you.\n
-                Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
-                Type "e" to exit.""")
-                await ctx.send(embed= source_language_input_explanation, delete_after=120)
-            else:
-                destination_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Moving on: \n
-                Type the two-letter abbreviation(some exceptions) of the language you wish to translate the text in.\n
-                Type "n", and I will translate it into English by default.\n  
-                Type the language in whole if you don't know the code for it, and I will check for you.\n
-                Type "all", and I will show you all the languages I know and their respective ISO 639 code.\n
-                Type "e" to exit.""")
-                await ctx.send(embed=destination_language_input_explanation, delete_after=120)
-
-            input_object = await self.client.wait_for("message", check=check, timeout=60)
-            input = input_object.content.lower()
-            
-            if input in ['e', 'exit']:
-                await exit_message()
-            elif input in ["n", "none"]:
-                return await switch_to_default_input(answer_for)
-            elif input in ["a", "all"]:
-                await Paginator.Simple().start(ctx, pages=print_all_languages(googletrans.LANGCODES))
-                return await ask_input(answer_for)
-            else:
-                if input in googletrans.LANGUAGES:
-                    return input
-                elif input in googletrans.LANGCODES:
-                    await ctx.send(embed=discord.Embed(title="Zen | Translation", description=f"Found it! {input} : {googletrans.LANGCODES[input]}"), delete_after=120)
-                    input = googletrans.LANGCODES[input]
-                    return input 
+        async def ask_input(answer_received, input_for):
+            while answer_received == False:
+                if input_for == 'source':
+                    source_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Choose from the following options: \n
+                    Type the language your text is in, or its two-letter abbreviation if you know it.\n
+                    Type "n", and I will try to detect it myself.\n
+                    Type "all" to see a list of languages and their respective two-letter abbreviations.\n
+                    Type "e" to exit.""")
+                    await ctx.send(embed= source_language_input_explanation, delete_after=120)
                 else:
-                    await invalid_input_message()
-                    return await ask_input(answer_for)
+                    destination_language_input_explanation = discord.Embed(title="Zen | Translation", description="""Choose from the following options: \n
+                    Type the language the text should be translated into, or its two-letter abbreviation if you know it.\n
+                    Type "n", and I will translate it into English by default.\n  
+                    Type "all" to see a list of languages and their respective two-letter abbreviations.\n
+                    Type "e" to exit.""")
+                    await ctx.send(embed=destination_language_input_explanation, delete_after=120)
+
+                try:
+                    input_object = await self.client.wait_for("message", check=check, timeout=60)
+                    input = input_object.content.lower()
+                except asyncio.TimeoutError:
+                    await ctx.send(embed=timeOutEmbed, delete_after=120)
+                
+                if input in ['e', 'exit']:
+                    await exit_message()
+                    return
+                elif input in ["n", "none"]:
+                    answer_received = True
+                    return await switch_to_default_input(input_for)
+                elif input in ["a", "all"]:
+                    await Paginator.Simple().start(ctx, pages=print_all_languages(googletrans.LANGCODES))
+                else:
+                    if input in googletrans.LANGUAGES:
+                        answer_received = True
+                        return input
+                    elif input in googletrans.LANGCODES:
+                        answer_received = True
+                        await ctx.send(embed=discord.Embed(title="Zen | Translation", description=f"Found it! {input} : {googletrans.LANGCODES[input]}"), delete_after=120)
+                        input = googletrans.LANGCODES[input]
+                        return input 
+                    else:
+                        await invalid_input_message()
 
         async def get_text():
             notification = discord.Embed(title="Zen | Translation", description="Woops! Don't forget to type in want you want me to translate next time. Type it in now, I'll note it down.")
             await ctx.send(embed=notification, delete_after=120)
-            input_object = await self.client.wait_for("message", check=check, timeout=60)
-            input = input_object.content
+            try:
+                input_object = await self.client.wait_for("message", check=check, timeout=60)
+                input = input_object.content
+            except asyncio.TimeoutError:
+                await ctx.send(embed=timeOutEmbed, delete_after=120)
+                return
             return input
 
         async def translate_text(original_text, source, destination):
@@ -261,14 +272,15 @@ class Fun(commands.Cog, description="Fun commands."):
             await ctx.send(embed=discord.Embed(title="Zen | Translation", description=f"{original_text}\n> {result}\n> {pronounciation}"), delete_after=120)
 
         async def start():
-            source_language = await ask_input('source')
+            source_language = await ask_input(False, 'source')
             if not source_language: return
-            destination_language = await ask_input('destination')
+            destination_language = await ask_input(False, 'destination')
             if not destination_language: return
             await translate_text(text_to_translate, source_language, destination_language)
 
         if not text_to_translate:
                 text_to_translate = await get_text()
+                if not text_to_translate: return
         await start()
             
     @app_commands.command(name="coinflip")
