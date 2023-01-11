@@ -1,4 +1,5 @@
 import discord
+from datetime import datetime
 from discord.ext import commands
 from discord import app_commands
 from discord.utils import get
@@ -9,7 +10,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
         self.client = client
         
     def moderation_embed(self, ctx: commands.Context) -> discord.Embed:
-        embed = discord.Embed(title="Zen | Moderation", color=ctx.author.color)
+        embed = discord.Embed(title="Zen | Moderation", color=ctx.author.color, timestamp=datetime.now())
         return embed
 
     async def cog_command_error(self, ctx: commands.Context, error: str):
@@ -22,13 +23,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
     async def on_ready(self):
         print("Moderation module has been loaded.")
 
-    @commands.command()
-    async def test(self, ctx: commands.Context):
-        embed = self.moderation_embed(ctx)
-        embed.description = "<:mooncoin:1059721143822589974>"
-        await ctx.send(embed=embed)
-
-    @commands.command(aliases=["clear", "clearm"])
+    @commands.command(aliases=["clear", "clearm", "deletemessage", "deletem", "purge"])
     async def clearmessage(self, ctx: commands.Context, amount: int = 20, member: discord.Member = None):
         embed = self.moderation_embed(ctx)
         if member is None:
@@ -39,6 +34,32 @@ class Moderation(commands.Cog, description="Moderation commands."):
             await ctx.channel.purge(limit=amount+1, check=lambda x: x.author.id == member.id)
             embed.description = f"Cleared all messages sent by {member.mention} in {ctx.channel.mention} in the last {amount} messages!"
             await ctx.send(embed=embed, delete_after=15)
+
+    @commands.command()
+    async def warn(self, ctx: commands.Context, member: discord.Member, *, message: str):
+        embed = self.moderation_embed(ctx)
+        embed.title = "Zen | Warning"
+        embed.add_field(name="Message", value=f"**{message}**")
+        embed.set_footer(text=f"You have been warned by {ctx.author.name}", icon_url=ctx.author.avatar)
+        await member.send(embed=embed)
+
+    @commands.command()
+    async def lockchannel(self, ctx: commands.Context):
+        embed = self.moderation_embed(ctx)
+        overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
+        overwrite.send_messages = False
+        await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+        embed.description = f"Locked {ctx.channel.mention}"
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def unlockchannel(self, ctx: commands.Context):
+        embed = self.moderation_embed(ctx)
+        overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
+        overwrite.send_messages = True
+        await ctx.channel.set_permissions(ctx.guild.default_role, overwrite=overwrite)
+        embed.description = f"Unlocked {ctx.channel.mention}"
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def rolesetup(self, ctx: commands.Context, channel: discord.TextChannel):
