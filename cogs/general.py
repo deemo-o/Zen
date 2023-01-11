@@ -13,7 +13,17 @@ class General(commands.Cog, description="Simple commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
-        
+
+    def general_embed(self, ctx: commands.Context) -> discord.Embed:
+        embed = discord.Embed(title="Zen | General", color=ctx.author.color, timestamp=datetime.now())
+        return embed
+
+    async def cog_command_error(self, ctx: commands.Context, error: str):
+        embed = self.general_embed(ctx)
+        if isinstance(error, Exception):
+            embed.description = str(error).capitalize()
+            return await ctx.send(embed=embed)
+
     @commands.Cog.listener()
     async def on_ready(self):
         print("General module has been loaded.")
@@ -103,7 +113,7 @@ class General(commands.Cog, description="Simple commands."):
         humidity = data['main']['humidity']
         windSpeed = round(data['wind']['speed'] * 3.6)
         windSpeedImp = round(windSpeed / 1.609)
-        embed = discord.Embed(title=f'Current Weather in {cityName}', color=ctx.author.top_role.color)
+        embed = discord.Embed(title=f'Current Weather in {cityName}', color=ctx.author.color)
         embed.set_thumbnail(url=f"http://openweathermap.org/img/wn/{weatherIcon}@2x.png")
         embed.add_field(name='Current Temp', value=f"{tempInC} \N{DEGREE SIGN}C | {tempInF}\N{DEGREE SIGN}F", inline=True)
         embed.add_field(name='Feels Like', value=f"{feelsLikeInC}\N{DEGREE SIGN}C | {feelsLikeInF}\N{DEGREE SIGN}F", inline=True)
@@ -113,6 +123,13 @@ class General(commands.Cog, description="Simple commands."):
         embed.add_field(name='Wind Speed', value=f"{windSpeed} km/h | {windSpeedImp} m/h", inline=True)
         embed.timestamp = datetime.now()
         embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar)
-        await ctx.send(embed=embed) 
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def ping(self, ctx: commands.Context):
+        embed = self.moderation_embed(ctx)
+        embed.description = f"{round(self.client.latency * 1000)}ms"
+        await ctx.send(embed=embed)
+
 async def setup(client):
     await client.add_cog(General(client))
