@@ -23,7 +23,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
     async def on_ready(self):
         print("Moderation module has been loaded.")
 
-    @commands.command(aliases=["clear", "clearm", "deletemessage", "deletem", "purge"])
+    @commands.command(aliases=["clear", "clearm", "deletemessage", "deletem", "purge"], brief="Clears messages in a channel.", description="This command will clear an amount of messages in a text channel. Is a user is specified, this command will clear all the messages the user sent in the last amount of messages.")
     async def clearmessage(self, ctx: commands.Context, amount: int = 20, member: discord.Member = None):
         embed = self.moderation_embed(ctx)
         if member is None:
@@ -35,7 +35,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
             embed.description = f"Cleared all messages sent by {member.mention} in {ctx.channel.mention} in the last {amount} messages!"
             await ctx.send(embed=embed, delete_after=15)
 
-    @commands.command()
+    @commands.command(aliases=["warning", "alert", "inform"], brief="Warn a user with the specified message", description="This command will send a warning message to a user with the specified message.")
     async def warn(self, ctx: commands.Context, member: discord.Member, *, message: str):
         embed = self.moderation_embed(ctx)
         embed.title = "Zen | Warning"
@@ -43,7 +43,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
         embed.set_footer(text=f"You have been warned by {ctx.author.name}", icon_url=ctx.author.avatar)
         await member.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["lock"], brief="Prevents users from sending message in a channel.", description="This command will lock a channel and prevent any users from sending messages in the channel.")
     async def lockchannel(self, ctx: commands.Context):
         embed = self.moderation_embed(ctx)
         overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
@@ -52,7 +52,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
         embed.description = f"Locked {ctx.channel.mention}"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["unlock"], brief="Removes the prevention allowing users to send messages in a channel.", description="This command will unlock a channel and allow users to send messages in the channel again.")
     async def unlockchannel(self, ctx: commands.Context):
         embed = self.moderation_embed(ctx)
         overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
@@ -61,7 +61,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
         embed.description = f"Unlocked {ctx.channel.mention}"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Sets up the roles. (work in progress)", description="Work in progress.")
     async def rolesetup(self, ctx: commands.Context, channel: discord.TextChannel):
 
         study_role = get(ctx.author.guild.roles, name="Study")
