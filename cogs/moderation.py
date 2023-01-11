@@ -9,7 +9,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
-        self.poll_channel = None
+        self.poll_channel = self.client.get_channel(1059185820424216656)
         self.poll_reactions_count = {"Yes": 0, "No": 0}
         
     def moderation_embed(self, ctx: commands.Context) -> discord.Embed:
@@ -162,6 +162,8 @@ class Moderation(commands.Cog, description="Moderation commands."):
         count += f"**Yes: {self.poll_reactions_count['Yes'] - 1}**\n**No: {self.poll_reactions_count['No'] - 1}**"
         embed.set_field_at(1, name="Result", value=count, inline=False)
         await poll.edit(embed=embed)
+        self.poll_reactions_count["Yes"] = 0
+        self.poll_reactions_count["No"] = 0
             
     @commands.command(brief="Sets up the roles. (work in progress)", description="Work in progress.")
     async def rolesetup(self, ctx: commands.Context, channel: discord.TextChannel):
