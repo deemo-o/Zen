@@ -26,7 +26,7 @@ class Help(commands.HelpCommand):
         embed.set_footer(text=f'Made by {author.name}#{author.discriminator}', icon_url=author.avatar)
         await self.get_destination().send(embed=embed)
 
-    async def send_cog_help(self, cog):
+    async def send_cog_help(self, cog: commands.Cog):
 
         author = await client.fetch_user(172503861477507072)
         description = f'These are all the available commands for the {cog.qualified_name} module. You can get the specific information about a command by typing {client.command_prefix}help [command] (prefix commands only).\n\n'
@@ -61,7 +61,7 @@ class Help(commands.HelpCommand):
         embed.set_footer(text=f'Made by {author.name}#{author.discriminator}', icon_url=author.avatar)
         await self.get_destination().send(embed=embed)
 
-    async def send_command_help(self, command):
+    async def send_command_help(self, command: commands.Command):
 
         description = command.description
         if description == '':
@@ -108,68 +108,6 @@ async def on_ready():
         print(f'Synced {len(synced)} application command(s)')
     except Exception as e:
         print(e)
-
-@client.event
-async def on_member_join(member: discord.Member):
-    await member.add_roles(get(member.guild.roles, name="Meditator"), reason="Default role when joining.")
-
-@client.event
-async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
-    member: discord.Member = payload.member
-    channel_id: discord.TextChannel.id = payload.channel_id
-    emoji: discord.PartialEmoji = payload.emoji
-
-    study_role = get(member.guild.roles, name="Study")
-    movie_role = get(member.guild.roles, name="Movie")
-    game_role = get(member.guild.roles, name="Game")
-    vibe_role = get(member.guild.roles, name="Vibe")
-    karaoke_role = get(member.guild.roles, name="Karaoke")
-
-    if channel_id == 1053501652226813982:
-        if str(emoji) == "💚":
-            await member.add_roles(study_role)
-            print(f"{member} has added the Study role.")
-        if str(emoji) == "💛":
-            await member.add_roles(movie_role)
-            print(f"{member} has added the Movie role.")
-        if str(emoji) == "💙":
-            await member.add_roles(game_role)
-            print(f"{member} has added the Game role.")
-        if str(emoji) == "💜":
-            await member.add_roles(vibe_role)
-            print(f"{member} has added the Vibe role.")
-        if str(emoji) == "🤎":
-            await member.add_roles(karaoke_role)
-            print(f"{member} has added the Karaoke role.")
-            
-@client.event
-async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
-    member: discord.Member = get(client.get_guild(payload.guild_id).members, id=payload.user_id)
-    channel_id: discord.TextChannel.id = payload.channel_id
-    emoji: discord.PartialEmoji = payload.emoji
-
-    study_role = get(member.guild.roles, name="Study")
-    movie_role = get(member.guild.roles, name="Movie")
-    game_role = get(member.guild.roles, name="Game")
-    vibe_role = get(member.guild.roles, name="Vibe")
-    karaoke_role = get(member.guild.roles, name="Karaoke")
-
-    if channel_id == 1053501652226813982:
-        if str(emoji) == "💚":
-            await member.remove_roles(study_role)
-            print(f"{member} has removed the Study role.")
-        if str(emoji) == "💛":
-            await member.remove_roles(movie_role)
-            print(f"{member} has removed the Study role.")
-        if str(emoji) == "💙":
-            await member.remove_roles(game_role)
-            print(f"{member} has removed the Study role.")
-        if str(emoji) == "💜":
-            await member.remove_roles(vibe_role)
-            print(f"{member} has removed the Study role.")
-        if str(emoji) == "🤎":
-            await member.remove_roles(karaoke_role)
-            print(f"{member} has removed the Study role.")
 
 @client.event 
 async def on_command_error(ctx, error): 

@@ -2,6 +2,7 @@ import io
 import discord
 import random
 import aiohttp
+from datetime import datetime
 from discord.ext import commands
 from discord import app_commands
 from PyDictionary import PyDictionary
@@ -17,6 +18,16 @@ class Fun(commands.Cog, description="Fun commands."):
 
     def __init__(self, client: commands.Bot):
         self.client = client
+        
+    def fun_embed(self, ctx: commands.Context) -> discord.Embed:
+        embed = discord.Embed(title="Zen | Fun", color=ctx.author.color, timestamp=datetime.now())
+        return embed
+
+    async def cog_command_error(self, ctx: commands.Context, error: str):
+        embed = self.fun_embed(ctx)
+        if isinstance(error, Exception):
+            embed.description = str(error).capitalize()
+            return await ctx.send(embed=embed)
 
     def getSynOrAnt(self, method, word):
         methods = {

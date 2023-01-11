@@ -117,6 +117,16 @@ class Music(commands.Cog, description="Music commands."):
     def __init__(self, client: commands.Bot):
         self.client = client
 
+    def music_embed(self, ctx: commands.Context) -> discord.Embed:
+        embed = discord.Embed(title="Zen | Music", color=ctx.author.color, timestamp=datetime.now())
+        return embed
+
+    async def cog_command_error(self, ctx: commands.Context, error: str):
+        embed = self.music_embed(ctx)
+        if isinstance(error, Exception):
+            embed.description = str(error).capitalize()
+            return await ctx.send(embed=embed)
+
     async def start_nodes(self):
         await self.client.wait_until_ready()
 
