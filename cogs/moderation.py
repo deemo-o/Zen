@@ -94,6 +94,12 @@ class Moderation(commands.Cog, description="Moderation commands."):
                 await member.remove_roles(karaoke_role)
                 print(f"{member} has removed the Karaoke role.")
 
+        if channel_id == self.poll_channel.id:
+            if str(payload.emoji) == "👍":
+                self.poll_reactions_count["Yes"] -= 1
+            if str(payload.emoji) == "👎":
+                self.poll_reactions_count["No"] -= 1
+
     @commands.command(aliases=["clear", "clearm", "deletemessage", "deletem", "purge"], brief="Clears messages in a channel.", description="This command will clear an amount of messages in a text channel. Is a user is specified, this command will clear all the messages the user sent in the last amount of messages.")
     async def clearmessage(self, ctx: commands.Context, amount: int = 20, member: discord.Member = None):
         embed = self.moderation_embed(ctx)
