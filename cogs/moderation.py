@@ -9,7 +9,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
-        self.poll_channel = self.client.get_channel(1059185820424216656)
+        self.poll_channel = None
         self.poll_reactions_count = {"Yes": 0, "No": 0}
         
     def moderation_embed(self, ctx: commands.Context) -> discord.Embed:
@@ -23,17 +23,16 @@ class Moderation(commands.Cog, description="Moderation commands."):
             return await ctx.send(embed=embed)
 
     @commands.Cog.listener()
+    async def on_ready(self):
+        print("Moderation module has been loaded.")
+        self.poll_channel = self.client.get_channel(1059185820424216656)
+        
+    @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         await member.add_roles(get(member.guild.roles, name="Meditator"), reason="Default role when joining.")
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
-        if payload.channel_id == self.poll_channel.id:
-            if str(payload.emoji) == "👍":
-                self.poll_reactions_count["Yes"] += 1
-            if str(payload.emoji) == "👎":
-                self.poll_reactions_count["No"] += 1
-
         member: discord.Member = payload.member
         channel_id: discord.TextChannel.id = payload.channel_id
         emoji: discord.PartialEmoji = payload.emoji
@@ -61,6 +60,12 @@ class Moderation(commands.Cog, description="Moderation commands."):
                 await member.add_roles(karaoke_role)
                 print(f"{member} has added the Karaoke role.")
 
+        if channel_id == self.poll_channel.id:
+            if str(payload.emoji) == "👍":
+                self.poll_reactions_count["Yes"] += 1
+            if str(payload.emoji) == "👎":
+                self.poll_reactions_count["No"] += 1
+
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
         member: discord.Member = get(self.client.get_guild(payload.guild_id).members, id=payload.user_id)
@@ -78,20 +83,16 @@ class Moderation(commands.Cog, description="Moderation commands."):
                 print(f"{member} has removed the Study role.")
             if str(emoji) == "💛":
                 await member.remove_roles(movie_role)
-                print(f"{member} has removed the Study role.")
+                print(f"{member} has removed the Movie role.")
             if str(emoji) == "💙":
                 await member.remove_roles(game_role)
-                print(f"{member} has removed the Study role.")
+                print(f"{member} has removed the Game role.")
             if str(emoji) == "💜":
                 await member.remove_roles(vibe_role)
-                print(f"{member} has removed the Study role.")
+                print(f"{member} has removed the Vibe role.")
             if str(emoji) == "🤎":
                 await member.remove_roles(karaoke_role)
-                print(f"{member} has removed the Study role.")
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        print("Moderation module has been loaded.")
+                print(f"{member} has removed the Karaoke role.")
 
     @commands.command(aliases=["clear", "clearm", "deletemessage", "deletem", "purge"], brief="Clears messages in a channel.", description="This command will clear an amount of messages in a text channel. Is a user is specified, this command will clear all the messages the user sent in the last amount of messages.")
     async def clearmessage(self, ctx: commands.Context, amount: int = 20, member: discord.Member = None):
