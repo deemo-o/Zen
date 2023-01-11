@@ -26,7 +26,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
     async def on_ready(self):
         print("Moderation module has been loaded.")
         self.poll_channel = self.client.get_channel(1059185820424216656)
-        
+
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
         await member.add_roles(get(member.guild.roles, name="Meditator"), reason="Default role when joining.")
@@ -132,7 +132,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
         embed.description = f"Unlocked {ctx.channel.mention}"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Asks admins for help.", description="This command will send your call for help message to every admin in the server.")
     async def adminhelp(self, ctx: commands.Context, *, message: str):
         embed = self.moderation_embed(ctx)
         embed.title = "Zen | Admin Help"
@@ -146,7 +146,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
                     await member.send(embed=embed)
 
     # Yes and No answers only
-    @commands.command()
+    @commands.command(brief="Starts a poll with the specified question and time limit.", description="This command will start a poll with the time limit you as the first argument and the question as the second argument.")
     async def poll(self, ctx: commands.Context, timeout: int, *, message: str):
         channel = self.poll_channel
         embed = self.moderation_embed(ctx)
