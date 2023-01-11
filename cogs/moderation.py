@@ -153,6 +153,7 @@ class Moderation(commands.Cog, description="Moderation commands."):
         embed.title = "Zen | Poll"
         embed.add_field(name="Question", value=f"**{message}**", inline=False)
         embed.add_field(name="Duration", value=f"This poll will last {timeout} seconds.", inline=False)
+        embed.set_footer(text=f"Poll started by {ctx.author.name}", icon_url=ctx.author.avatar)
         poll = await channel.send(embed=embed)
         await poll.add_reaction("👍")
         await poll.add_reaction("👎")
