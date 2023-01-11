@@ -1,3 +1,4 @@
+import asyncio
 import discord
 from datetime import datetime
 from discord.ext import commands
@@ -8,6 +9,8 @@ class Moderation(commands.Cog, description="Moderation commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
+        self.poll_channel = self.client.get_channel(1059185820424216656)
+        self.poll_reactions_count = {"Yes": 0, "No": 0}
         
     def moderation_embed(self, ctx: commands.Context) -> discord.Embed:
         embed = discord.Embed(title="Zen | Moderation", color=ctx.author.color, timestamp=datetime.now())
@@ -18,6 +21,73 @@ class Moderation(commands.Cog, description="Moderation commands."):
         if isinstance(error, Exception):
             embed.description = str(error).capitalize()
             return await ctx.send(embed=embed)
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        await member.add_roles(get(member.guild.roles, name="Meditator"), reason="Default role when joining.")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.channel_id == self.poll_channel.id:
+            if str(payload.emoji) == "👍":
+                self.poll_reactions_count["Yes"] += 1
+            if str(payload.emoji) == "👎":
+                self.poll_reactions_count["No"] += 1
+
+        member: discord.Member = payload.member
+        channel_id: discord.TextChannel.id = payload.channel_id
+        emoji: discord.PartialEmoji = payload.emoji
+
+        study_role = get(member.guild.roles, name="Study")
+        movie_role = get(member.guild.roles, name="Movie")
+        game_role = get(member.guild.roles, name="Game")
+        vibe_role = get(member.guild.roles, name="Vibe")
+        karaoke_role = get(member.guild.roles, name="Karaoke")
+
+        if channel_id == 1053501652226813982:
+            if str(emoji) == "💚":
+                await member.add_roles(study_role)
+                print(f"{member} has added the Study role.")
+            if str(emoji) == "💛":
+                await member.add_roles(movie_role)
+                print(f"{member} has added the Movie role.")
+            if str(emoji) == "💙":
+                await member.add_roles(game_role)
+                print(f"{member} has added the Game role.")
+            if str(emoji) == "💜":
+                await member.add_roles(vibe_role)
+                print(f"{member} has added the Vibe role.")
+            if str(emoji) == "🤎":
+                await member.add_roles(karaoke_role)
+                print(f"{member} has added the Karaoke role.")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        member: discord.Member = get(self.client.get_guild(payload.guild_id).members, id=payload.user_id)
+        channel_id: discord.TextChannel.id = payload.channel_id
+        emoji: discord.PartialEmoji = payload.emoji
+        study_role = get(member.guild.roles, name="Study")
+        movie_role = get(member.guild.roles, name="Movie")
+        game_role = get(member.guild.roles, name="Game")
+        vibe_role = get(member.guild.roles, name="Vibe")
+        karaoke_role = get(member.guild.roles, name="Karaoke")
+
+        if channel_id == 1053501652226813982:
+            if str(emoji) == "💚":
+                await member.remove_roles(study_role)
+                print(f"{member} has removed the Study role.")
+            if str(emoji) == "💛":
+                await member.remove_roles(movie_role)
+                print(f"{member} has removed the Study role.")
+            if str(emoji) == "💙":
+                await member.remove_roles(game_role)
+                print(f"{member} has removed the Study role.")
+            if str(emoji) == "💜":
+                await member.remove_roles(vibe_role)
+                print(f"{member} has removed the Study role.")
+            if str(emoji) == "🤎":
+                await member.remove_roles(karaoke_role)
+                print(f"{member} has removed the Study role.")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -61,9 +131,38 @@ class Moderation(commands.Cog, description="Moderation commands."):
         embed.description = f"Unlocked {ctx.channel.mention}"
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def adminhelp(self, ctx: commands.Context, *, message: str):
+        embed = self.moderation_embed(ctx)
+        embed.title = "Zen | Admin Help"
+        embed.description = "Someone is asking for an admin!"
+        embed.add_field(name="Message", value=f"**{message}**")
+        embed.set_footer(text=f"Requested by {ctx.author.name}", icon_url=ctx.author.avatar)
+        guild = discord.utils.get(self.client.guilds, id=ctx.guild.id)
+        for member in guild.members:
+            for role in member.roles:
+                if role.name == "Admin":
+                    await member.send(embed=embed)
+
+    # Yes and No answers only
+    @commands.command()
+    async def poll(self, ctx: commands.Context, timeout: int, *, message: str):
+        channel = self.poll_channel
+        embed = self.moderation_embed(ctx)
+        embed.title = "Zen | Poll"
+        embed.add_field(name="Question", value=f"**{message}**", inline=False)
+        embed.add_field(name="Duration", value=f"This poll will last {timeout} seconds.", inline=False)
+        poll = await channel.send(embed=embed)
+        await poll.add_reaction("👍")
+        await poll.add_reaction("👎")
+        await asyncio.sleep(timeout)
+        count = "The poll has ended! Here are the results:\n"
+        count += f"**Yes: {self.poll_reactions_count['Yes'] - 1}**\n**No: {self.poll_reactions_count['No'] - 1}**"
+        embed.set_field_at(1, name="Result", value=count, inline=False)
+        await poll.edit(embed=embed)
+            
     @commands.command(brief="Sets up the roles. (work in progress)", description="Work in progress.")
     async def rolesetup(self, ctx: commands.Context, channel: discord.TextChannel):
-
         study_role = get(ctx.author.guild.roles, name="Study")
         movie_role = get(ctx.author.guild.roles, name="Movie")
         game_role = get(ctx.author.guild.roles, name="Game")
