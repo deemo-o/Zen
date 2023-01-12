@@ -24,7 +24,7 @@ class Misc(commands.Cog, description="Misc commands."):
     async def on_ready(self):
         print("Misc module has been loaded.")
 
-    @commands.command(aliases=["tasklist", "todolist", "todo"])
+    @commands.command(aliases=["tasklist", "todolist", "todo"], brief="Lists all your tasks.", description="This command will list all of your current tasks.")
     async def tasks(self, ctx: commands.Context):
         embed = self.misc_embed(ctx)
         embed.title = "Zen | Todo List"
@@ -54,7 +54,7 @@ class Misc(commands.Cog, description="Misc commands."):
         tasks = todo_dboperations.get_todo_list(self.connection, member.id)
         for index, task in enumerate(tasks):
             if task_index == index + 1:
-                todo_dboperations.update_task(self.connection, member.id, f"{task[1][:-4].upper()} [X]", task[1])
+                todo_dboperations.update_task(self.connection, member.id, f"[X] {task[1][4:].upper()}", task[1])
                 await ctx.invoke(self.tasks)
 
     @commands.command(aliases=["createtask", "addtask", "taskadd"])
@@ -62,7 +62,7 @@ class Misc(commands.Cog, description="Misc commands."):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
         task_index = len(todo_dboperations.get_todo_list(self.connection, member.id))
-        todo_dboperations.create_task(self.connection, member.id, f"[{task.upper()}] [ ]")
+        todo_dboperations.create_task(self.connection, member.id, f"[ ] [{task.upper()}]")
         await ctx.invoke(self.tasks)
 
     @commands.command(aliases=["deletetask", "removetask", "taskremove"])
