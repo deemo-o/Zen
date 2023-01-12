@@ -40,14 +40,14 @@ class Misc(commands.Cog, description="Misc commands."):
         await ctx.send(content, delete_after=60)
         print(tasks)
 
-    @commands.command(aliases=["cleartask", "cleartodo", "todoclear"])
+    @commands.command(aliases=["cleartask", "cleartodo", "todoclear"], brief="Clears your todo list.", description="This command will clear all the task(s) in your to do list.")
     async def taskclear(self, ctx: commands.Context):
         member = ctx.author
         todo_dboperations.drop_table(self.connection, member.id)
         todo_dboperations.create_table(self.connection, member.id)
         await ctx.invoke(self.tasks)
 
-    @commands.command(aliases=["checktask", "todocheck", "checktodo"])
+    @commands.command(aliases=["checktask", "todocheck", "checktodo"], brief="Mark a task as done.", description="This command will mark the checkbox of the task you specified.")
     async def taskcheck(self, ctx: commands.Context, task_index: int):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
@@ -57,7 +57,7 @@ class Misc(commands.Cog, description="Misc commands."):
                 todo_dboperations.update_task(self.connection, member.id, f"[X] {task[1][4:].upper()}", task[1])
                 await ctx.invoke(self.tasks)
 
-    @commands.command(aliases=["createtask", "addtask", "taskadd"])
+    @commands.command(aliases=["createtask", "addtask", "taskadd"], brief="Adds a task in your todo list.", description="This command will add a new task in your todo list.")
     async def taskcreate(self, ctx: commands.Context, *, task: str):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
@@ -65,7 +65,7 @@ class Misc(commands.Cog, description="Misc commands."):
         todo_dboperations.create_task(self.connection, member.id, f"[ ] [{task.upper()}]")
         await ctx.invoke(self.tasks)
 
-    @commands.command(aliases=["deletetask", "removetask", "taskremove"])
+    @commands.command(aliases=["deletetask", "removetask", "taskremove"], brief="Removes a task from your todo list.", description="This command will remove a task from your todo list.")
     async def taskdelete(self, ctx: commands.Context, task_index: int):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
