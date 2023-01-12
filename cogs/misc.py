@@ -28,7 +28,7 @@ class Misc(commands.Cog, description="Misc commands."):
     async def tasks(self, ctx: commands.Context):
         embed = self.misc_embed(ctx)
         embed.title = "Zen | Todo List"
-        content = f"```INI\n{ctx.author.name}'s Task(s) in Todo List ⇓\n\n"
+        content = f"```SML\n{ctx.author.display_name}'s Task(s) in Todo List ⇓\n\n"
         member = ctx.author
         counter = 1
         todo_dboperations.create_table(self.connection, member.id)
