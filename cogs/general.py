@@ -127,7 +127,7 @@ class General(commands.Cog, description="Simple commands."):
 
     @commands.command()
     async def ping(self, ctx: commands.Context):
-        embed = self.moderation_embed(ctx)
+        embed = self.general_embed(ctx)
         embed.description = f"{round(self.client.latency * 1000)}ms"
         await ctx.send(embed=embed)
 
