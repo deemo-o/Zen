@@ -38,7 +38,7 @@ class Misc(commands.Cog, description="Misc commands."):
     async def on_ready(self):
         print("Misc module has been loaded.")
 
-    @commands.command()
+    @commands.command(aliases=["remindtodo", "remindtodolist", "notifytodo", "todonotify"], brief="Will subscribe you to the todo list reminder.", description="This command will subscribe you to the todo list reminder, letting you see your todo list every 30 minutes.")
     async def todoreminder(self, ctx: commands.Context):
         todo_dboperations.create_table(self.connection, ctx.author.id)
         embed = self.misc_embed(ctx)
@@ -52,7 +52,7 @@ class Misc(commands.Cog, description="Misc commands."):
             embed.description = "Todo Reminder has been disabled."
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Turns on the global reminder.", description="This command will enable the reminder loop.")
     async def enablereminder(self, ctx: commands.Context):
         embed = self.misc_embed(ctx)
         embed.title = "Zen | Reminder"
@@ -60,7 +60,7 @@ class Misc(commands.Cog, description="Misc commands."):
         self.remind_todo_to_members.start()
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Turns off the global reminder.", description="This command will disable the reminder loop.")
     async def disablereminder(self, ctx: commands.Context):
         embed = self.misc_embed(ctx)
         embed.title = "Zen | Reminder"
