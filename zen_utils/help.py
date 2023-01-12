@@ -12,7 +12,6 @@ class CustomHelpCommand(commands.HelpCommand):
         description = f'The following is a list of currently available modules. Type {self.client.command_prefix}help [module] to display all the commands inside a specific module.\n\n'
         for cog in mapping:
             if cog is not None:
-                print(cog)
                 description += f'**`{cog.qualified_name}`** - {cog.description}\n'
 
         embed = discord.Embed(title="List of modules", description=description, timestamp=datetime.now(), color=discord.Color.from_rgb(248, 175, 175))
