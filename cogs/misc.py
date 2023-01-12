@@ -24,7 +24,7 @@ class Misc(commands.Cog, description="Misc commands."):
     async def on_ready(self):
         print("Misc module has been loaded.")
 
-    @commands.command()
+    @commands.command(aliases=["tasklist", "todolist", "todo"])
     async def tasks(self, ctx: commands.Context):
         embed = self.misc_embed(ctx)
         embed.title = "Zen | Todo List"
@@ -40,14 +40,14 @@ class Misc(commands.Cog, description="Misc commands."):
         await ctx.send(content, delete_after=60)
         print(tasks)
 
-    @commands.command()
+    @commands.command(aliases=["cleartask", "cleartodo", "todoclear"])
     async def taskclear(self, ctx: commands.Context):
         member = ctx.author
         todo_dboperations.drop_table(self.connection, member.id)
         todo_dboperations.create_table(self.connection, member.id)
         await ctx.invoke(self.tasks)
 
-    @commands.command()
+    @commands.command(aliases=["checktask", "todocheck", "checktodo"])
     async def taskcheck(self, ctx: commands.Context, task_index: int):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
@@ -57,7 +57,7 @@ class Misc(commands.Cog, description="Misc commands."):
                 todo_dboperations.update_task(self.connection, member.id, f"{task[1][:-4].upper()} [X]", task[1])
                 await ctx.invoke(self.tasks)
 
-    @commands.command()
+    @commands.command(aliases=["createtask", "addtask", "taskadd"])
     async def taskcreate(self, ctx: commands.Context, *, task: str):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
@@ -65,7 +65,7 @@ class Misc(commands.Cog, description="Misc commands."):
         todo_dboperations.create_task(self.connection, member.id, f"[{task.upper()}] [ ]")
         await ctx.invoke(self.tasks)
 
-    @commands.command()
+    @commands.command(aliases=["deletetask", "removetask", "taskremove"])
     async def taskdelete(self, ctx: commands.Context, task_index: int):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
