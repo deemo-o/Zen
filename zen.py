@@ -16,8 +16,10 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
+load_dotenv()
+
 client = commands.Bot(
-    command_prefix="#",
+    command_prefix=os.getenv("COMMAND_PREFIX"),
     intents=discord.Intents.all(),
     case_insensitive=True)
 
@@ -43,5 +45,4 @@ async def on_command_error(ctx, error):
     else:
         print(error)
 
-load_dotenv()
 client.run(os.getenv("TOKEN"))
