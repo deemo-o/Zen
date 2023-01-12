@@ -33,6 +33,7 @@ class Misc(commands.Cog, description="Misc commands."):
                 counter += 1
             content += "```"
             await member.send(content, delete_after=60)
+            print(f"Sent todo reminder to {member.display_name}")
 
     @commands.Cog.listener()
     async def on_ready(self):
