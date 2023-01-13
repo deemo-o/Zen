@@ -103,7 +103,7 @@ class Economy(commands.Cog, description="Economy commands."):
             economy_dboperations.add_guild(self.connection, guild.id, guild.name)
             economy_dboperations.create_giftchannels_table(self.connection, guild.id)
 
-    @commands.command()
+    @commands.command(aliases=["togglegq", "tgq"], brief="Toggle gift questions in subscribed channels.", description="This command will enable/disable the gift questions in the channels that are subscribed.")
     async def togglegiftquestion(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         if not self.gift_question.is_running():
@@ -115,7 +115,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"Disabled gift questions for subscribed channels."
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["gqstatus"], brief="Shows if gift questions are enabled or disabled.", description="This command will display whether gift questions are currently enabled or disabled.")
     async def giftquestionstatus(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         if self.gift_question.is_running():
@@ -125,7 +125,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = "Currently Disabled."
             return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["tgc", "togglegc"], brief="Subscribes or unsubscribes the current channel to the list of gift channels.", description="This command will subscribe or unsubscribe the current channel to the list of gift channels.")
     async def togglegiftchannel(self, ctx: commands.Context):
         giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
         print(giftchannels)
@@ -142,11 +142,21 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"Unsubscribed {ctx.channel.mention} from the list of gift channels."
             await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["gclist"], brief="Displays a list of channels that are subscribed to gift questions.", description="This command will display a list of channels that are subscribed to gift questions.")
     async def giftchannels(self, ctx: commands.Context):
+        embed = self.economy_embed(ctx)
+        embed.title = "Zen | Gift Channels"
         giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
+        print(giftchannels)
+        channels = []
+        for channel in giftchannels:
+            channels.append(await self.client.fetch_channel(channel[1]))
+        embed.description = ""
+        for index, channel in enumerate(channels):
+            embed.description += f"{index + 1} - {channel.mention}\n"
+        await ctx.send(embed=embed)
 
-    @commands.command(aliases=["bal", "money", "networth"])
+    @commands.command(aliases=["bal", "money", "networth"], brief="Displays your balance or the balance of someone you specified.", description="This command will display your balance or the balance of someone you specified.")
     async def balance(self, ctx: commands.Context, member: discord.Member = None):
         embed = self.economy_embed(ctx)
         if member is None:
@@ -164,7 +174,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["giftmoney", "transfer", "transfermoney", "send", "gift"], brief="Sends `amount` of money to someone.", description="This command will send the amount of money you speficied to someone.")
     async def sendmoney(self, ctx: commands.Context, amount: int, member: discord.Member):
         embed = self.economy_embed(ctx)
         if amount < 0:
@@ -186,7 +196,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["moneyadd", "addbalance", "addbal", "balanceadd"], brief="Adds the amount of money to the specified user.", description="This command will let you add the amount of money you specified to a user you specified.")
     async def addmoney(self, ctx: commands.Context, amount: int, member: discord.Member = None):
         embed = self.economy_embed(ctx)
         if amount < 0:
@@ -207,7 +217,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["moneyremove", "removebalance", "removebalance", "balremove", "balanceremove"], brief="Removes the amount of money from the specified user.", description="This command will remove the amount of money you specified from a user you specified.")
     async def removemoney(self, ctx: commands.Context, amount: int, member: discord.Member = None):
         embed = self.economy_embed(ctx)
         if amount < 0:
@@ -234,7 +244,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Work with your current rank and earn your rank's salary", description="This command will let you earn money based on the minimum and maximum salary of your current rank.")
     @commands.cooldown(1, 900, commands.BucketType.user)
     async def work(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
@@ -248,8 +258,8 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
         return await ctx.send(embed=embed)
 
-    @commands.command()
-    @commands.cooldown(1, 900, commands.BucketType.user)
+    @commands.command(brief="Gives you your daily gift based on your rank.", description="This command will give you a daily gift containing around 10 times the salary of your current rank.")
+    @commands.cooldown(1, 86400, commands.BucketType.user)
     async def daily(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         if economy_dboperations.check_member_exists(self.connection, ctx.author):
@@ -262,7 +272,7 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
         return await ctx.send(embed=embed)        
 
-    @commands.command()
+    @commands.command(aliases=["createacc"], brief="Lets you create an account.", description="This command will let you create an account in the economy module.")
     async def createaccount(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         rank = economy_dboperations.get_rank_with_position(self.connection, 1)
@@ -273,14 +283,14 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = f"Account created with **{self.starting_money}**{self.displayed_currency}, starting as {rank[0][1].capitalize()}."
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["deleteacc", "delacc"], brief="Deletes your current account.", description="This command will delete your current account in the economy module.")
     async def deleteaccount(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         operation = economy_dboperations.delete_member(self.connection, ctx.author.id)
         embed.description = "Your account has been succesfully deleted!"
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Lets staff create a rank.", description="This command will let a staff member create a rank in the economy module.")
     async def createrank(self, ctx: commands.Context, rank: str, minsalary: int, maxsalary: int, required: int = 0, position: int = 1):
         embed = self.economy_embed(ctx)
         if minsalary <=0 or maxsalary <= 0:
@@ -293,7 +303,7 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = f"Created {rank.capitalize()} with a minimum daily salary of {minsalary}{self.displayed_currency} and a maximum daily salary of {maxsalary}{self.displayed_currency}."
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["updaterank"], brief="Lets staff modify a rank.", description="This command will let a staff member modify an existing rank in the economy module.")
     async def modifyrank(self, ctx: commands.Context, position: int):
         embed = self.economy_embed(ctx)
         ranks = economy_dboperations.get_all_ranks(self.connection)
@@ -353,7 +363,7 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = f"You have successfully modified {rank[1]} to {new_name.content.capitalize()}!"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["removerank"], brief="Lets staff delete a rank.", description="This command will let a staff member delete a rank in the economy module")
     async def deleterank(self, ctx: commands.Context, position: int):
         embed = self.economy_embed(ctx)
         default_rank = economy_dboperations.get_default_rank(self.connection)[0][1]
@@ -372,7 +382,7 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = "You have successfully deleted the rank!"
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["showrank", "rankinfo"], brief="Displays specific information about a rank.", description="This command will display all the information about a specific rank such as the minimum salary, maximum salary, required net worth and rank level.")
     async def rank(self, ctx: commands.Context, position: int):
         embed = self.economy_embed(ctx)
         ranks = economy_dboperations.get_all_ranks(self.connection)
@@ -389,7 +399,7 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.add_field(name="Rank Level", value=f"**{rank[5]}**", inline=False)
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Lets a staff change the starting balance/money.", description="This command will let a staff member change the starting balance/money of new members.")
     async def startingmoney(self, ctx: commands.Context, money: int = None):
         embed = self.economy_embed(ctx)
         if money is None:
@@ -399,7 +409,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"Successfully changed starting money to **{money}**{self.displayed_currency}"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Displays the currency that is currently used.", description="This command will display the currency that is currently being used.")
     async def currency(self, ctx: commands.Context, currency = None):
         embed = self.economy_embed(ctx)
         if currency is None:
@@ -409,7 +419,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"Successfully changed the currency to {currency}!"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Displays information about your economy profile or the one of a user you specified.", description="This command will display the information of your economy profile or the one of a user you specified.")
     async def profile(self, ctx: commands.Context, member: discord.Member = None):
         embed = self.economy_embed(ctx)
         if member is None:
@@ -435,7 +445,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["economytop"], brief="Displays the richest members registered in the economy module.", description="This command will display the richest registered members and their respective ranks in the economy module.")
     async def leaderboard(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         embed.description = ""
@@ -444,7 +454,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description += f"{index + 1}. <@{member[1]}> **{member[3]}**{self.displayed_currency} - **{member[4].capitalize()}**\n"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Displays the ranks currently available.", description="This command will display a list of currently available ranks.")
     async def ranks(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         embed.description = ""
