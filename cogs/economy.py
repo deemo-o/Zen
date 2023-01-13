@@ -1,4 +1,5 @@
 import random
+import time
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -12,6 +13,9 @@ class Economy(commands.Cog, description="Economy commands."):
         self.displayed_currency = "$"
         self.connection = economy_dboperations.connection()
 
+    def convert(self, seconds):
+        return time.strftime("**%Mm%Ss**", time.gmtime(seconds))
+
     def economy_embed(self, ctx: commands.Context) -> discord.Embed:
         embed = discord.Embed(title="Zen | Economy", color=ctx.author.color)
         return embed
@@ -21,7 +25,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed = self.economy_embed(ctx)
             embed.description = "You already have an account!" if str(operation) == "UNIQUE constraint failed: members.userid" else str(operation).capitalize()
             return embed
-            
+
     async def cog_command_error(self, ctx: commands.Context, error: str):
         embed = self.economy_embed(ctx)
         if isinstance(error, commands.MissingRequiredArgument):
@@ -106,6 +110,7 @@ class Economy(commands.Cog, description="Economy commands."):
             return await ctx.send(embed=embed)
 
     @commands.command()
+    @commands.cooldown(1, 900, commands.BucketType.user)
     async def work(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         if economy_dboperations.check_member_exists(self.connection, ctx.author):
@@ -139,6 +144,12 @@ class Economy(commands.Cog, description="Economy commands."):
     @commands.command()
     async def createrank(self, ctx: commands.Context, rank: str, minsalary: int, maxsalary: int, required: int = 0, position: int = 1):
         embed = self.economy_embed(ctx)
+        if minsalary <=0 or maxsalary <= 0:
+            embed.description = "The minimum and the maximum salary can't be negative or 0$"
+            return await ctx.send(embed=embed)
+        if minsalary >= maxsalary:
+            embed.description = "The minimum salary can't be higher or equal to the maximum salary."
+            return await ctx.send(embed=embed)
         operation = economy_dboperations.create_rank(self.connection, rank.lower(), minsalary, maxsalary, required, position)
         embed.description = f"Created {rank.capitalize()} with a minimum daily salary of {minsalary}{self.displayed_currency} and a maximum daily salary of {maxsalary}{self.displayed_currency}."
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
@@ -148,10 +159,18 @@ class Economy(commands.Cog, description="Economy commands."):
     #     embed = self.economy_embed(ctx)
 
     @commands.command()
-    async def deleterank(self, ctx: commands.Context, rank):
+    async def deleterank(self, ctx: commands.Context, rank: str):
         embed = self.economy_embed(ctx)
         default_rank = economy_dboperations.get_default_rank(self.connection)[0][1]
-        if rank == default_rank:
+        ranks = economy_dboperations.get_all_ranks(self.connection)
+        ranks_list = []
+        for r in ranks:
+            ranks_list.append(r[1])
+        print(ranks_list)
+        if rank not in ranks_list:
+            embed.description = "The rank you're trying to delete doesn't exist."
+            return await ctx.send(embed=embed)
+        if rank.lower() == default_rank:
             embed.description = f"You cannot delete the default rank!\nUse {self.client.command_prefix}modifyrank to modify the default rank"
             return await ctx.send(embed=embed)
         operation = economy_dboperations.delete_rank(self.connection, rank.lower())
@@ -209,10 +228,25 @@ class Economy(commands.Cog, description="Economy commands."):
         embed = self.economy_embed(ctx)
         embed.description = ""
         members_data = economy_dboperations.get_leaderboard(self.connection)
-        print(members_data)
         for index, member in enumerate(members_data):
-            embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]}**{self.displayed_currency}\n"
-        
+            embed.description += f"{index + 1}. <@{member[1]}> **{member[3]}**{self.displayed_currency} - **{member[4].capitalize()}**\n"
         await ctx.send(embed=embed)
+
+    @commands.command()
+    async def ranks(self, ctx: commands.Context):
+        embed = self.economy_embed(ctx)
+        embed.description = ""
+        ranks_data = economy_dboperations.get_ranks_by_position(self.connection)
+        for rank in ranks_data:
+            embed.description += f"{rank[5]}. **{rank[1].capitalize()}** (Requires: **{rank[4]}**{self.displayed_currency})\n"
+        await ctx.send(embed=embed)
+
+    @work.error
+    async def work_error(self, ctx: commands.Context, error):
+        if isinstance(error, commands.CommandOnCooldown):
+            embed = self.economy_embed(ctx)
+            embed.description = f"You can't work yet! Try again in {self.convert(error.retry_after)}"
+            await ctx.send(embed=embed)
+
 async def setup(client):
     await client.add_cog(Economy(client))

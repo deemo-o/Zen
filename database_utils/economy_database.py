@@ -16,12 +16,15 @@ def add_member(connection, userid, name, money, rank):
     with connection:
         connection.execute(economy_queries.INSERT_MEMBER, (userid, name, money, rank))
 
+def update_member(connection, userid, rank):
+    with connection:
+        connection.execute(economy_queries.UPDATE_MEMBER_RANK, (rank, userid))
+
 def add_rank(connection, name, minsalary, maxsalary, required, position):
     with connection:
         connection.execute(economy_queries.INSERT_RANK, (name, minsalary, maxsalary, required, position))
 
 def add_member_money(connection, userid, money):
-    money += get_member_by_userid(connection, userid)[0][3]
     with connection:
         connection.execute(economy_queries.UPDATE_MEMBER_MONEY, (money, userid))
 
@@ -36,6 +39,10 @@ def get_all_members_by_networth(connection):
 def get_all_ranks(connection):
     with connection:
         return connection.execute(economy_queries.GET_ALL_RANKS).fetchall()
+
+def get_all_ranks_by_position(connection):
+    with connection:
+        return connection.execute(economy_queries.GET_ALL_RANKS_BY_POSITION).fetchall()
 
 def get_member_by_userid(connection, userid):
     with connection:

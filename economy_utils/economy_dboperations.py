@@ -20,7 +20,17 @@ def create_tables(connection):
 
 def add_member_money(connection, member: discord.Member, money: int):
     try:
+        temp_member = economy_database.get_member_by_userid(connection, member.id)[0]
+        money += temp_member[3]
         economy_database.add_member_money(connection, member.id, money)
+        temp_member_rank = temp_member[4]
+        current_rank = economy_database.get_rank_by_name(connection, temp_member_rank)[0]
+        current_rank_position = current_rank[5]
+        ranks = economy_database.get_all_ranks(connection)
+        for rank in ranks:
+            if money >= rank[4]:
+                temp_member_rank = rank
+        economy_database.update_member(connection, member.id, temp_member_rank[1])
     except Exception as exception:
         return exception
 
@@ -45,6 +55,12 @@ def get_rank_minmax_salary(connection, rank: str):
 def get_leaderboard(connection):
     try:
         return economy_database.get_all_members_by_networth(connection)
+    except Exception as exception:
+        return exception
+
+def get_ranks_by_position(connection):
+    try:
+        return economy_database.get_all_ranks_by_position(connection)
     except Exception as exception:
         return exception
 
@@ -75,6 +91,12 @@ def get_default_rank(connection):
 def get_rank_with_position(connection, position: int):
     try:
         return economy_database.get_rank_by_position(connection, position)
+    except Exception as exception:
+        return exception
+
+def get_all_ranks(connection):
+    try:
+        return economy_database.get_all_ranks(connection)
     except Exception as exception:
         return exception
 
