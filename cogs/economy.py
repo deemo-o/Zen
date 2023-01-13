@@ -2,7 +2,7 @@ import asyncio
 import random
 import time
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 from economy_utils import economy_dboperations
 
@@ -12,7 +12,17 @@ class Economy(commands.Cog, description="Economy commands."):
         self.client = client
         self.starting_money = 500
         self.displayed_currency = "$"
+        self.gift_channels = []
         self.connection = economy_dboperations.connection()
+
+    def get_random_seconds(self) -> int:
+        return random.randint(3, 10)
+
+    def simple_math_question(self):
+        a = random.randint(1, 999)
+        b = random.randint(1, 999)
+        c = a + b
+        return a, b, c
 
     def convert(self, seconds):
         return time.strftime("**%Mm%Ss**", time.gmtime(seconds))
@@ -39,10 +49,47 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = str(error).capitalize()
             return await ctx.send(embed=embed)
 
+    @tasks.loop(seconds=5)
+    async def gift_money(self):
+        await asyncio.sleep(self.get_random_seconds())
+        embed = discord.Embed(title="Zen | Gift Question", color=discord.Color.from_rgb(248, 175, 175))
+        question = self.simple_math_question()
+        embed.description = f"What is the answer to this equation:\n\n{question[0]} + {question[1]} = ?\n\nYou need to have an account to participate, type {self.client.command_prefix}createaccount if you don't already have one."
+        for channel in self.gift_channels:
+            await channel.send(embed=embed)
+        try:
+            answer = await self.client.wait_for("message", check=lambda x: x.content == f"{question[2]}" and economy_dboperations.get_member(self.connection, x.author) != [], timeout=60.0)
+            embed.description = f"{answer.author.mention} got the right answer and won **500$**!"
+            economy_dboperations.add_member_money(self.connection, answer.author, 500)
+            for channel in self.gift_channels:
+                await channel.send(embed=embed)
+        except asyncio.TimeoutError:
+            embed.description = "No one answered. Better luck next time!"
+            await channel.send(embed=embed)
+
     @commands.Cog.listener()
     async def on_ready(self):
         print("Economy module has been loaded.")
         economy_dboperations.create_tables(self.connection)
+
+    @commands.command()
+    async def enablegift(self, ctx: commands.Context):
+        embed = self.economy_embed(ctx)
+        self.gift_money.start()
+        embed.description = f"Enable gift question."
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    async def giftchannel(self, ctx: commands.Context):
+        embed = self.economy_embed(ctx)
+        if ctx.channel not in self.gift_channels:
+            self.gift_channels.append(ctx.channel)
+            embed.description = f"Added {ctx.channel.mention} to the list of gift channels."
+            await ctx.send(embed=embed)
+        else:
+            self.gift_channels.remove(ctx.channel)
+            embed.description = f"Removed {ctx.channel.mention} from the list of gift channels."
+            await ctx.send(embed=embed)
 
     @commands.command(aliases=["bal", "money", "networth"])
     async def balance(self, ctx: commands.Context, member: discord.Member = None):
