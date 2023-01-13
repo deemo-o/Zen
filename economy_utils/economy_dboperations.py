@@ -57,6 +57,14 @@ def add_member_money(connection, member: discord.Member, money: int):
             if money >= rank[4]:
                 temp_member_rank = rank
         economy_database.update_member(connection, member.id, temp_member_rank[1])
+        old_member_rank = economy_database.get_rank_by_name(connection, temp_member[4])[0]
+        new_member_rank = temp_member_rank
+        if old_member_rank[4] < new_member_rank[4]:
+            return f"Congratulations! <@{temp_member[1]}> promoted to **{new_member_rank[1].capitalize()}**!"
+        elif old_member_rank[4] == new_member_rank[4]:
+            return ""
+        else:
+            return f"Unlucky, <@{temp_member[1]}> demoted to **{new_member_rank[1].capitalize()}**."
     except Exception as exception:
         return exception
 

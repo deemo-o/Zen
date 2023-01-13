@@ -13,15 +13,39 @@ class Economy(commands.Cog, description="Economy commands."):
         self.starting_money = 500
         self.displayed_currency = "$"
         self.connection = economy_dboperations.connection()
+        self.gift_question.start()
+
+    def cog_unload(self):
+        self.gift_question.cancel()
 
     def get_random_seconds(self) -> int:
-        return random.randint(300, 600)
+        return random.randint(300, 600) # Currently set between 5-10 minutes
 
-    def simple_math_question(self):
+    def simple_math_addition(self):
         a = random.randint(1, 999)
         b = random.randint(1, 999)
         c = a + b
-        return a, b, c
+        d = "+"
+        e = random.randint(450, 750)
+        return a, b, c, d, e
+
+    def simple_math_subtraction(self):
+        a = random.randint(1, 999)
+        b = random.randint(1, 999)
+        while b > a:
+            b = random.randint(1, 999)
+        c = a - b
+        d = "-"
+        e = random.randint(500, 800)
+        return a, b, c, d, e
+
+    def simple_math_multiplication(self):
+        a = random.randint(1, 99)
+        b = random.randint(1, 99)
+        c = a * b
+        d = "*"
+        e = random.randint(650, 950)
+        return a, b, c, d, e
 
     def convert(self, seconds):
         return time.strftime("**%Mm%Ss**", time.gmtime(seconds))
@@ -39,15 +63,18 @@ class Economy(commands.Cog, description="Economy commands."):
     async def cog_command_error(self, ctx: commands.Context, error: str):
         embed = self.economy_embed(ctx)
         if isinstance(error, Exception):
+            if isinstance(error, commands.CommandOnCooldown):
+                return
             embed.description = str(error).capitalize()
             return await ctx.send(embed=embed)
 
     @tasks.loop(seconds=60)
-    async def gift_money(self):
+    async def gift_question(self):
         await asyncio.sleep(self.get_random_seconds())
         embed = discord.Embed(title="Zen | Gift Question", color=discord.Color.from_rgb(248, 175, 175))
-        question = self.simple_math_question()
-        embed.description = f"What is the answer to this question?:\n\n{question[0]} + {question[1]} = ?\n\nYou need to have an account to participate, type {self.client.command_prefix}createaccount if you don't already have one."
+        questions = [self.simple_math_addition(), self.simple_math_subtraction(), self.simple_math_multiplication()]
+        question = random.choices(questions)
+        embed.description = f"What is the answer to this question?:\n\n{question[0][0]} {question[0][3]} {question[0][1]} = ?\n\nYou need to have an account to participate.\nType {self.client.command_prefix}createaccount if you don't already have one."
         guilds = economy_dboperations.get_all_guilds(self.connection)
         channels = []
         for guild in guilds:
@@ -55,17 +82,17 @@ class Economy(commands.Cog, description="Economy commands."):
             for channel in giftchannels:
                 channels.append(await self.client.fetch_channel(channel[1]))
         for channel in channels:
-            await channel.send(embed=embed)
+            await channel.send(embed=embed, delete_after=60)
         try:
-            answer = await self.client.wait_for("message", check=lambda x: x.content == f"{question[2]}" and economy_dboperations.get_member(self.connection, x.author) != [], timeout=60.0)
-            prize = random.randint(450, 700)
-            embed.description = f"{answer.author.mention} got the right answer and won **{prize}{self.displayed_currency}**!"
-            economy_dboperations.add_member_money(self.connection, answer.author, prize)
+            answer = await self.client.wait_for("message", check=lambda x: x.content == f"{question[0][2]}" and economy_dboperations.get_member(self.connection, x.author) != [], timeout=60.0)
+            money = economy_dboperations.add_member_money(self.connection, answer.author, question[0][4])
+            embed.description = f"{answer.author.mention} got the right answer and won **{question[0][4]}{self.displayed_currency}**!\n\n{money}"
             for channel in channels:
-                await channel.send(embed=embed)
+                await channel.send(embed=embed, delete_after=60)
         except asyncio.TimeoutError:
             embed.description = "No one answered. Better luck next time!"
-            await channel.send(embed=embed)
+            for channel in channels:
+                await channel.send(embed=embed, delete_after=60)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -77,14 +104,29 @@ class Economy(commands.Cog, description="Economy commands."):
             economy_dboperations.create_giftchannels_table(self.connection, guild.id)
 
     @commands.command()
-    async def enablegift(self, ctx: commands.Context):
+    async def togglegiftquestion(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
-        self.gift_money.start()
-        embed.description = f"Enabled gift questions in subscribed channels."
-        await ctx.send(embed=embed)
+        if not self.gift_question.is_running():
+            self.gift_question.start()
+            embed.description = f"Enabled gift questions for subscribed channels."
+            await ctx.send(embed=embed)
+        else:
+            self.gift_question.cancel()
+            embed.description = f"Disabled gift questions for subscribed channels."
+            await ctx.send(embed=embed)
 
     @commands.command()
-    async def giftchannel(self, ctx: commands.Context):
+    async def giftquestionstatus(self, ctx: commands.Context):
+        embed = self.economy_embed(ctx)
+        if self.gift_question.is_running():
+            embed.description = "Currently Enabled."
+            return await ctx.send(embed=embed)
+        if not self.gift_question.is_running():
+            embed.description = "Currently Disabled."
+            return await ctx.send(embed=embed)
+
+    @commands.command()
+    async def togglegiftchannel(self, ctx: commands.Context):
         giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
         print(giftchannels)
         giftchannels_id_list = []
@@ -93,12 +135,16 @@ class Economy(commands.Cog, description="Economy commands."):
         embed = self.economy_embed(ctx)
         if ctx.channel.id not in giftchannels_id_list:
             economy_dboperations.add_giftchannel(self.connection, ctx.guild.id, ctx.channel.id)
-            embed.description = f"Added {ctx.channel.mention} to the list of gift channels."
+            embed.description = f"Subscribed {ctx.channel.mention} to the list of gift channels."
             await ctx.send(embed=embed)
         else:
             economy_dboperations.delete_giftchannel(self.connection, ctx.guild.id, ctx.channel.id)
-            embed.description = f"Removed {ctx.channel.mention} from the list of gift channels."
+            embed.description = f"Unsubscribed {ctx.channel.mention} from the list of gift channels."
             await ctx.send(embed=embed)
+
+    @commands.command()
+    async def giftchannels(self, ctx: commands.Context):
+        giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
 
     @commands.command(aliases=["bal", "money", "networth"])
     async def balance(self, ctx: commands.Context, member: discord.Member = None):
@@ -129,9 +175,9 @@ class Economy(commands.Cog, description="Economy commands."):
             if amount > money:
                 embed.description = "You don't have that much money!"
                 return await ctx.send(embed=embed)
-            economy_dboperations.add_member_money(self.connection, member, amount)
-            economy_dboperations.add_member_money(self.connection, ctx.author, -amount)
-            embed.description = f"You have sent **{amount}{self.displayed_currency}** to {member.mention}."
+            member_status = economy_dboperations.add_member_money(self.connection, member, amount)
+            author_status = economy_dboperations.add_member_money(self.connection, ctx.author, -amount)
+            embed.description = f"You have sent **{amount}{self.displayed_currency}** to {member.mention}.\n{author_status}\n{member_status}"
             return await ctx.send(embed=embed)
         if not economy_dboperations.check_member_exists(self.connection, ctx.author):
             embed.description = f"You need an account to be able to send money!\nType {self.client.command_prefix}createaccount to create an account."
@@ -149,14 +195,14 @@ class Economy(commands.Cog, description="Economy commands."):
         if member is None:
             if economy_dboperations.check_member_exists(self.connection, ctx.author):
                 money = economy_dboperations.add_member_money(self.connection, ctx.author, amount)
-                embed.description = f"Added **{amount}**{self.displayed_currency} to {ctx.author.mention}'s account!"
+                embed.description = f"Added **{amount}**{self.displayed_currency} to {ctx.author.mention}'s account!\n{money}"
                 return await ctx.send(embed=self.db_exception_embed(ctx, money)) if self.db_exception_embed(ctx, money) else await ctx.send(embed=embed)
             embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
         else:
             if economy_dboperations.check_member_exists(self.connection, member):
                 money = economy_dboperations.add_member_money(self.connection, member, amount)
-                embed.description = f"Added **{amount}**{self.displayed_currency} to {member.mention}'s account!"
+                embed.description = f"Added **{amount}**{self.displayed_currency} to {member.mention}'s account!\n{money}"
                 return await ctx.send(embed=self.db_exception_embed(ctx, money)) if self.db_exception_embed(ctx, money) else await ctx.send(embed=embed)
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
@@ -173,7 +219,7 @@ class Economy(commands.Cog, description="Economy commands."):
                 if amount > networth:
                     amount = networth
                 money = economy_dboperations.add_member_money(self.connection, ctx.author, -amount)
-                embed.description = f"Removed **{amount}**{self.displayed_currency} from {ctx.author.mention}'s account!"
+                embed.description = f"Removed **{amount}**{self.displayed_currency} from {ctx.author.mention}'s account!\n{money}"
                 return await ctx.send(embed=self.db_exception_embed(ctx, money)) if self.db_exception_embed(ctx, money) else await ctx.send(embed=embed)
             embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
@@ -183,7 +229,7 @@ class Economy(commands.Cog, description="Economy commands."):
                 if amount > networth:
                     amount = networth
                 money = economy_dboperations.add_member_money(self.connection, member, -amount)
-                embed.description = f"Removed **{amount}**{self.displayed_currency} from {member.mention}'s account!"
+                embed.description = f"Removed **{amount}**{self.displayed_currency} from {member.mention}'s account!\n{money}"
                 return await ctx.send(embed=self.db_exception_embed(ctx, money)) if self.db_exception_embed(ctx, money) else await ctx.send(embed=embed)
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
@@ -197,10 +243,24 @@ class Economy(commands.Cog, description="Economy commands."):
             minmax = economy_dboperations.get_rank_minmax_salary(self.connection, rank)
             salary = random.randint(minmax[0], minmax[1])
             operation = economy_dboperations.add_member_money(self.connection, ctx.author, salary)
-            embed.description = f"You worked hard today and earned **{salary}**{self.displayed_currency} as {rank.capitalize()}!"
+            embed.description = f"You worked hard today and earned **{salary}**{self.displayed_currency} as {rank.capitalize()}!\n{operation}"
             return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
-        embed.description = embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
+        embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
         return await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.cooldown(1, 900, commands.BucketType.user)
+    async def daily(self, ctx: commands.Context):
+        embed = self.economy_embed(ctx)
+        if economy_dboperations.check_member_exists(self.connection, ctx.author):
+            rank = economy_dboperations.get_member_rank(self.connection, ctx.author)
+            minmax = economy_dboperations.get_rank_minmax_salary(self.connection, rank)
+            salary = random.randint(minmax[0]*10, minmax[1]*10)
+            operation = economy_dboperations.add_member_money(self.connection, ctx.author, salary)
+            embed.description = f"You opened your daily gift and earned **{salary}**{self.displayed_currency}!\n{operation}"
+            return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
+        embed.description = f"{ctx.author.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
+        return await ctx.send(embed=embed)        
 
     @commands.command()
     async def createaccount(self, ctx: commands.Context):
