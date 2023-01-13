@@ -217,7 +217,7 @@ class Economy(commands.Cog, description="Economy commands."):
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
-    @commands.command(aliases=["moneyremove", "removebalance", "removebalance", "balremove", "balanceremove"], brief="Removes the amount of money from the specified user.", description="This command will remove the amount of money you specified from a user you specified.")
+    @commands.command(aliases=["moneyremove", "removebalance", "removebal", "balremove", "balanceremove"], brief="Removes the amount of money from the specified user.", description="This command will remove the amount of money you specified from a user you specified.")
     async def removemoney(self, ctx: commands.Context, amount: int, member: discord.Member = None):
         embed = self.economy_embed(ctx)
         if amount < 0:
