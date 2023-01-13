@@ -11,6 +11,9 @@ class Misc(commands.Cog, description="Misc commands."):
         self.connection = todo_dboperations.connection()
         self.remind_members = []
 
+    def cog_unload(self):
+        self.remind_todo_to_members.cancel()
+
     def misc_embed(self, ctx: commands.Context):
         embed = discord.Embed(title="Zen | Misc", color=ctx.author.color)
         return embed
@@ -21,7 +24,7 @@ class Misc(commands.Cog, description="Misc commands."):
             embed.description = str(error).capitalize()
             return await ctx.send(embed=embed)
 
-    @tasks.loop(seconds=1800)
+    @tasks.loop(seconds=2700)
     async def remind_todo_to_members(self):
         for member in self.remind_members:
             content = f"```SML\n{member.display_name}'s Task(s) in Todo List ⇓\n\n"
@@ -38,6 +41,15 @@ class Misc(commands.Cog, description="Misc commands."):
     @commands.Cog.listener()
     async def on_ready(self):
         print("Misc module has been loaded.")
+
+    @commands.command()
+    async def reminderlist(self, ctx: commands.Context):
+        embed = self.misc_embed(ctx)
+        embed.title = "Zen | Reminder List"
+        embed.description = ""
+        for index, member in enumerate(self.remind_members):
+            embed.description += f"{index + 1} - {member.mention}\n"
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["remindtodo", "remindtodolist", "notifytodo", "todonotify"], brief="Will subscribe you to the todo list reminder.", description="This command will subscribe you to the todo list reminder, letting you see your todo list every 30 minutes.")
     async def todoreminder(self, ctx: commands.Context):
@@ -65,8 +77,8 @@ class Misc(commands.Cog, description="Misc commands."):
     async def disablereminder(self, ctx: commands.Context):
         embed = self.misc_embed(ctx)
         embed.title = "Zen | Reminder"
-        embed.description = "Reminder has been disabled and will notify users that are subscribed."
-        self.remind_todo_to_members.stop()
+        embed.description = "Reminder has been disabled and will stop notifying users that are subscribed."
+        self.remind_todo_to_members.cancel()
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["tasklist", "todolist", "todo"], brief="Lists all your tasks.", description="This command will list all of your current tasks.")

@@ -259,7 +259,7 @@ class Music(commands.Cog, description="Music commands."):
         if not ctx.author.voice:
             await ctx.send("You need to be in a voice channel!")
         if not ctx.voice_client:
-            player: Player = await ctx.author.voice.channel.connect(cls=Player)
+            player: Player = await ctx.author.voice.channel.connect(cls=Player, reconnect=True)
         else:
             player: Player = ctx.voice_client
 
