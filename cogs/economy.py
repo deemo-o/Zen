@@ -4,7 +4,7 @@ import time
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
-from economy_utils import economy_dboperations
+from utils.economy_utils import economy_dboperations
 
 class Economy(commands.Cog, description="Economy commands."):
 

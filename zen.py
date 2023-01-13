@@ -8,7 +8,7 @@ from discord.ext import commands
 from discord import app_commands
 from discord.utils import get
 from dotenv import load_dotenv
-from zen_utils.help import CustomHelpCommand
+from utils.zen_utils.help import CustomHelpCommand
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)

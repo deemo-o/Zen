@@ -1,8 +1,8 @@
 import sqlite3 
-from database_utils import todo_queries
+from utils.database_utils import todo_queries
 
 def connect():
-    return sqlite3.connect("database_utils/database.db")
+    return sqlite3.connect("utils/database_utils/database.db")
 
 def create_tasks_table(connection, memberid):
     with connection:

@@ -13,8 +13,8 @@ from typing import Union
 from wavelink import LavalinkException, LoadTrackError, YouTubeTrack, YouTubeMusicTrack, YouTubePlaylist, SoundCloudTrack
 from discord.ext import commands
 from discord import app_commands
-from music_utils.source import Source
-from music_utils.loop import Loop
+from utils.music_utils.source import Source
+from utils.music_utils.loop import Loop
 from dotenv import load_dotenv
 
 class Track(wavelink.Track):

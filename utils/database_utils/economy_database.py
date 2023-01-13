@@ -1,8 +1,8 @@
 import sqlite3 
-from database_utils import economy_queries
+from utils.database_utils import economy_queries
 
 def connect():
-    return sqlite3.connect("database_utils/database.db")
+    return sqlite3.connect("utils/database_utils/database.db")
 
 def create_members_table(connection):
     with connection:

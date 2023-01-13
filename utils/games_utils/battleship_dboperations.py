@@ -1,5 +1,5 @@
 import discord
-from database_utils import games_database
+from utils.database_utils import games_database
 
 def connection():
     try:

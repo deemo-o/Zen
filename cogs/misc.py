@@ -2,7 +2,7 @@ import discord
 import sqlite3
 from discord.ext import commands, tasks
 from discord import app_commands
-from misc_utils import todo_dboperations 
+from utils.misc_utils import todo_dboperations 
 
 class Misc(commands.Cog, description="Misc commands."):
 

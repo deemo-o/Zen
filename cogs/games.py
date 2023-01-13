@@ -3,7 +3,7 @@ import discord
 import random
 from discord.ext import commands
 from discord import app_commands
-from games_utils import battleship_dboperations
+from utils.games_utils import battleship_dboperations
 import random
 import asyncio
 
