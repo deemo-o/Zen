@@ -24,6 +24,10 @@ def add_rank(connection, name, minsalary, maxsalary, required, position):
     with connection:
         connection.execute(economy_queries.INSERT_RANK, (name, minsalary, maxsalary, required, position))
 
+def update_rank(connection, rank, minsalary, maxsalary, required, position):
+    with connection:
+        connection.execute(economy_queries.UPDATE_RANK, (rank, minsalary, maxsalary, required, position))
+
 def add_member_money(connection, userid, money):
     with connection:
         connection.execute(economy_queries.UPDATE_MEMBER_MONEY, (money, userid))
@@ -60,6 +64,6 @@ def delete_member_by_userid(connection, userid):
     with connection:
         connection.execute(economy_queries.DELETE_MEMBER, (userid,))
 
-def delete_rank_by_name(connection, name):
+def delete_rank(connection, position):
     with connection:
-        connection.execute(economy_queries.DELETE_RANK, (name,))
+        connection.execute(economy_queries.DELETE_RANK, (position,))

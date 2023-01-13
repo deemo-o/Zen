@@ -34,6 +34,12 @@ def add_member_money(connection, member: discord.Member, money: int):
     except Exception as exception:
         return exception
 
+def update_rank(connection, name, minsalary, maxsalary, required, position):
+    try:
+        economy_database.update_rank(connection, name, minsalary, maxsalary, required, position)
+    except Exception as exception:
+        return exception
+        
 def check_member_exists(connection, member: discord.Member):
     try:
         if not economy_database.get_member_by_userid(connection, member.id):
@@ -118,9 +124,9 @@ def delete_member(connection, userid):
     except Exception as exception:
         return exception
 
-def delete_rank(connection, rank):
+def delete_rank(connection, position):
     try:
-        economy_database.delete_rank_by_name(connection, rank)
+        economy_database.delete_rank_by_name(connection, position)
     except Exception as exception:
         return exception
         

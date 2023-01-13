@@ -1,3 +1,4 @@
+import asyncio
 import random
 import time
 import discord
@@ -154,28 +155,101 @@ class Economy(commands.Cog, description="Economy commands."):
         embed.description = f"Created {rank.capitalize()} with a minimum daily salary of {minsalary}{self.displayed_currency} and a maximum daily salary of {maxsalary}{self.displayed_currency}."
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
 
-    # @commands.command()
-    # async def modifyrank(self, ctx: commands.Context, position: int = 1):
-    #     embed = self.economy_embed(ctx)
+    @commands.command()
+    async def modifyrank(self, ctx: commands.Context, position: int):
+        embed = self.economy_embed(ctx)
+        ranks = economy_dboperations.get_all_ranks(self.connection)
+        positions_list = []
+        for rank in ranks:
+            positions_list.append(rank[5])
+        if position not in positions_list:
+            embed.description = "The rank you're trying to delete doesn't exist."
+            return await ctx.send(embed=embed)
+        rank = economy_dboperations.get_rank_with_position(self.connection, position)[0]
+        try:
+            embed.description = "Enter a new name for the rank:"
+            await ctx.send(embed=embed)
+            new_name = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            while not new_name.content.isalpha():
+                await ctx.send(embed=embed)
+                new_name = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            embed.description = f"Enter a new minimum salary for {new_name.content.capitalize()}:"
+            await ctx.send(embed=embed)
+            new_minsalary = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            while not new_minsalary.content.isnumeric():
+                await ctx.send(embed=embed)
+                new_minsalary = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+                if new_minsalary.content.isnumeric():
+                    while int(new_minsalary.content) <= 0:
+                        embed.description = f"The minimum salary has to be higher than 0{self.displayed_currency}\nEnter a new minimum salary for {new_name.content.capitalize()}:"
+                        await ctx.send(embed=embed)
+                        new_minsalary = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            embed.description = f"Enter a new maximum salary for {new_name.content.capitalize()}:"
+            await ctx.send(embed=embed)
+            new_maxsalary = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            while not new_maxsalary.content.isnumeric():
+                await ctx.send(embed=embed)
+                new_maxsalary = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+                if new_maxsalary.content.isnumeric():
+                    while int(new_maxsalary.content) <= int(new_minsalary.content):
+                        embed.description = f"The maximum salary has to be higher than the minimum salary!\nEnter a new maximum salary for {new_name.content.capitalize()}:"
+                        await ctx.send(embed=embed)
+                        new_maxsalary = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            embed.description = f"Enter a new required net worth for {new_name.content.capitalize()}:"
+            await ctx.send(embed=embed)
+            new_required = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            while not new_required.content.isnumeric():
+                await ctx.send(embed=embed)
+                new_required = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+                if new_required.content.isnumeric():
+                    while int(new_required.content) < 0:
+                        embed.description = f"The required net worth cannot be negative.\nEnter a new required net worth for {new_name.capitalize()}:"
+                        await ctx.send(embed=embed)
+                        new_required = await self.client.wait_for("message", check=lambda x: x.author == ctx.author, timeout=60.0)
+            if position == 1:
+                new_required.content = "0"
+        except asyncio.TimeoutError:
+            await ctx.send("You have been timed out!")
+            return
+        economy_dboperations.update_rank(self.connection, new_name.content.lower(), int(new_minsalary.content), int(new_maxsalary.content), int(new_required.content), position)
+        embed.description = f"You have successfully modified {rank[1]} to {new_name.content.capitalize()}!"
+        await ctx.send(embed=embed)
 
     @commands.command()
-    async def deleterank(self, ctx: commands.Context, rank: str):
+    async def deleterank(self, ctx: commands.Context, position: int):
         embed = self.economy_embed(ctx)
         default_rank = economy_dboperations.get_default_rank(self.connection)[0][1]
         ranks = economy_dboperations.get_all_ranks(self.connection)
         ranks_list = []
-        for r in ranks:
-            ranks_list.append(r[1])
+        for p in ranks:
+            ranks_list.append(p[5])
         print(ranks_list)
-        if rank not in ranks_list:
+        if position not in ranks_list:
             embed.description = "The rank you're trying to delete doesn't exist."
             return await ctx.send(embed=embed)
-        if rank.lower() == default_rank:
+        if position.lower() == default_rank:
             embed.description = f"You cannot delete the default rank!\nUse {self.client.command_prefix}modifyrank to modify the default rank"
             return await ctx.send(embed=embed)
-        operation = economy_dboperations.delete_rank(self.connection, rank.lower())
-        embed.description = f"You have successfully deleted {rank.capitalize()}!"
+        operation = economy_dboperations.delete_rank(self.connection, position)
+        embed.description = "You have successfully deleted the rank!"
         return await ctx.send(embed=self.db_exception_embed(ctx, operation)) if self.db_exception_embed(ctx, operation) else await ctx.send(embed=embed)
+
+    @commands.command()
+    async def rank(self, ctx: commands.Context, position: int):
+        embed = self.economy_embed(ctx)
+        ranks = economy_dboperations.get_all_ranks(self.connection)
+        positions_list = []
+        for p in ranks:
+            positions_list.append(p[5])
+        if position not in positions_list:
+            embed.description = "The rank you're trying display doesn't exist."
+            return await ctx.send(embed=embed)
+        rank = economy_dboperations.get_rank_with_position(self.connection, position)[0]
+        embed.add_field(name="Rank Name", value=f"**{rank[1].capitalize()}**", inline=False)
+        embed.add_field(name="Salary Range", value=f"**{rank[2]}{self.displayed_currency} to {rank[3]}{self.displayed_currency}**", inline=False)
+        embed.add_field(name="Required Net Worth", value=f"**{rank[4]}{self.displayed_currency}**", inline=False)
+        embed.add_field(name="Rank Level", value=f"**{rank[5]}**", inline=False)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def startingmoney(self, ctx: commands.Context, money: int = None):
