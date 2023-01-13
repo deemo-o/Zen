@@ -47,7 +47,7 @@ class Economy(commands.Cog, description="Economy commands."):
         await asyncio.sleep(self.get_random_seconds())
         embed = discord.Embed(title="Zen | Gift Question", color=discord.Color.from_rgb(248, 175, 175))
         question = self.simple_math_question()
-        embed.description = f"What is the answer to this equation:\n\n{question[0]} + {question[1]} = ?\n\nYou need to have an account to participate, type {self.client.command_prefix}createaccount if you don't already have one."
+        embed.description = f"What is the answer to this question?:\n\n{question[0]} + {question[1]} = ?\n\nYou need to have an account to participate, type {self.client.command_prefix}createaccount if you don't already have one."
         guilds = economy_dboperations.get_all_guilds(self.connection)
         channels = []
         for guild in guilds:
@@ -58,8 +58,9 @@ class Economy(commands.Cog, description="Economy commands."):
             await channel.send(embed=embed)
         try:
             answer = await self.client.wait_for("message", check=lambda x: x.content == f"{question[2]}" and economy_dboperations.get_member(self.connection, x.author) != [], timeout=60.0)
-            embed.description = f"{answer.author.mention} got the right answer and won **500$**!"
-            economy_dboperations.add_member_money(self.connection, answer.author, 500)
+            prize = random.randint(450, 700)
+            embed.description = f"{answer.author.mention} got the right answer and won **{prize}{self.displayed_currency}**!"
+            economy_dboperations.add_member_money(self.connection, answer.author, prize)
             for channel in channels:
                 await channel.send(embed=embed)
         except asyncio.TimeoutError:
@@ -114,6 +115,28 @@ class Economy(commands.Cog, description="Economy commands."):
                 money = economy_dboperations.get_member_money(self.connection, member)
                 embed.description = f"{member.mention} has **{money}**{self.displayed_currency}"
                 return await ctx.send(embed=self.db_exception_embed(ctx, money)) if self.db_exception_embed(ctx, money) else await ctx.send(embed=embed)
+            embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
+            return await ctx.send(embed=embed)
+
+    @commands.command()
+    async def sendmoney(self, ctx: commands.Context, amount: int, member: discord.Member):
+        embed = self.economy_embed(ctx)
+        if amount < 0:
+            embed.description = "The amount has to be positive!"
+            return await ctx.send(embed=embed)
+        if economy_dboperations.check_member_exists(self.connection, ctx.author) and economy_dboperations.check_member_exists(self.connection, member):
+            money = economy_dboperations.get_member_money(self.connection, ctx.author)
+            if amount > money:
+                embed.description = "You don't have that much money!"
+                return await ctx.send(embed=embed)
+            economy_dboperations.add_member_money(self.connection, member, amount)
+            economy_dboperations.add_member_money(self.connection, ctx.author, -amount)
+            embed.description = f"You have sent **{amount}{self.displayed_currency}** to {member.mention}."
+            return await ctx.send(embed=embed)
+        if not economy_dboperations.check_member_exists(self.connection, ctx.author):
+            embed.description = f"You need an account to be able to send money!\nType {self.client.command_prefix}createaccount to create an account."
+            return await ctx.send(embed=embed)
+        if not economy_dboperations.check_member_exists(self.connection, member):
             embed.description = f"{member.mention} doesn't have an account!\nType {self.client.command_prefix}createaccount to create an account."
             return await ctx.send(embed=embed)
 
