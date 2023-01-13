@@ -4,7 +4,6 @@ from utils.database_utils import economy_database
 def connection():
     try:
         connection = economy_database.connect()
-        print("Connected to the Economy database!")
         return connection
     except Exception as exception:
         return exception
@@ -12,23 +11,19 @@ def connection():
 def create_tables(connection):
     try:
         economy_database.create_members_table(connection)
-        print("Members Table is ready!")
         economy_database.create_ranks_table(connection)
-        print("Ranks Table is ready!")
     except Exception as exception:
         return exception
 
 def create_giftchannels_table(connection, guildid):
     try:
         economy_database.create_giftchannels_table(connection, guildid)
-        print(f"GiftChannel - {guildid} Table is ready!")
     except Exception as exception:
         return exception
 
 def create_guilds_table(connection):
     try:
         economy_database.create_guilds_table(connection)
-        print("Guilds Table is ready!")
     except Exception as exception:
         return exception
 

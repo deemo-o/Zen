@@ -4,7 +4,6 @@ from utils.database_utils import todo_database
 def connection():
     try:
         connection = todo_database.connect()
-        print("Connected to Database From Todo DBOperations!")
         return connection
     except Exception as exception:
         return exception
