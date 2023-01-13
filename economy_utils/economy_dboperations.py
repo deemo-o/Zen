@@ -18,6 +18,32 @@ def create_tables(connection):
     except Exception as exception:
         return exception
 
+def create_giftchannels_table(connection, guildid):
+    try:
+        economy_database.create_giftchannels_table(connection, guildid)
+        print(f"GiftChannel - {guildid} Table is ready!")
+    except Exception as exception:
+        return exception
+
+def create_guilds_table(connection):
+    try:
+        economy_database.create_guilds_table(connection)
+        print("Guilds Table is ready!")
+    except Exception as exception:
+        return exception
+
+def add_guild(connection, guildid, guildname):
+    try:
+        economy_database.add_guild(connection, guildid, guildname)
+    except Exception as exception:
+        return exception
+
+def add_giftchannel(connection, guildid, channelid):
+    try:
+        economy_database.add_giftchannel(connection, guildid, channelid)
+    except Exception as exception:
+        return exception
+
 def add_member_money(connection, member: discord.Member, money: int):
     try:
         temp_member = economy_database.get_member_by_userid(connection, member.id)[0]
@@ -39,13 +65,19 @@ def update_rank(connection, name, minsalary, maxsalary, required, position):
         economy_database.update_rank(connection, name, minsalary, maxsalary, required, position)
     except Exception as exception:
         return exception
-        
+
 def check_member_exists(connection, member: discord.Member):
     try:
         if not economy_database.get_member_by_userid(connection, member.id):
             return False
         else:
             return True
+    except Exception as exception:
+        return exception
+
+def get_all_guilds(connection):
+    try:
+        return economy_database.get_all_guilds(connection)
     except Exception as exception:
         return exception
 
@@ -61,6 +93,12 @@ def get_rank_minmax_salary(connection, rank: str):
 def get_leaderboard(connection):
     try:
         return economy_database.get_all_members_by_networth(connection)
+    except Exception as exception:
+        return exception
+
+def get_all_giftchannels(connection, guildid):
+    try:
+        return economy_database.get_all_giftchannels(connection, guildid)
     except Exception as exception:
         return exception
 
@@ -130,3 +168,8 @@ def delete_rank(connection, position):
     except Exception as exception:
         return exception
         
+def delete_giftchannel(connection, guildid, channelid):
+    try:
+        economy_database.delete_giftchannel(connection, guildid, channelid)
+    except Exception as exception:
+        return exception

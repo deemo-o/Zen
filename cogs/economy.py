@@ -12,11 +12,10 @@ class Economy(commands.Cog, description="Economy commands."):
         self.client = client
         self.starting_money = 500
         self.displayed_currency = "$"
-        self.gift_channels = []
         self.connection = economy_dboperations.connection()
 
     def get_random_seconds(self) -> int:
-        return random.randint(3, 10)
+        return random.randint(300, 600)
 
     def simple_math_question(self):
         a = random.randint(1, 999)
@@ -39,29 +38,29 @@ class Economy(commands.Cog, description="Economy commands."):
 
     async def cog_command_error(self, ctx: commands.Context, error: str):
         embed = self.economy_embed(ctx)
-        if isinstance(error, commands.MissingRequiredArgument):
-            embed.description = str(error).capitalize()
-            return await ctx.send(embed=embed)
-        if isinstance(error, commands.MemberNotFound):
-            embed.description = str(error).capitalize()
-            return await ctx.send(embed=embed)
-        if isinstance(error, commands.BadArgument):
+        if isinstance(error, Exception):
             embed.description = str(error).capitalize()
             return await ctx.send(embed=embed)
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=60)
     async def gift_money(self):
         await asyncio.sleep(self.get_random_seconds())
         embed = discord.Embed(title="Zen | Gift Question", color=discord.Color.from_rgb(248, 175, 175))
         question = self.simple_math_question()
         embed.description = f"What is the answer to this equation:\n\n{question[0]} + {question[1]} = ?\n\nYou need to have an account to participate, type {self.client.command_prefix}createaccount if you don't already have one."
-        for channel in self.gift_channels:
+        guilds = economy_dboperations.get_all_guilds(self.connection)
+        channels = []
+        for guild in guilds:
+            giftchannels = economy_dboperations.get_all_giftchannels(self.connection, guild[1])
+            for channel in giftchannels:
+                channels.append(await self.client.fetch_channel(channel[1]))
+        for channel in channels:
             await channel.send(embed=embed)
         try:
             answer = await self.client.wait_for("message", check=lambda x: x.content == f"{question[2]}" and economy_dboperations.get_member(self.connection, x.author) != [], timeout=60.0)
             embed.description = f"{answer.author.mention} got the right answer and won **500$**!"
             economy_dboperations.add_member_money(self.connection, answer.author, 500)
-            for channel in self.gift_channels:
+            for channel in channels:
                 await channel.send(embed=embed)
         except asyncio.TimeoutError:
             embed.description = "No one answered. Better luck next time!"
@@ -71,23 +70,32 @@ class Economy(commands.Cog, description="Economy commands."):
     async def on_ready(self):
         print("Economy module has been loaded.")
         economy_dboperations.create_tables(self.connection)
+        economy_dboperations.create_guilds_table(self.connection)
+        for guild in self.client.guilds:
+            economy_dboperations.add_guild(self.connection, guild.id, guild.name)
+            economy_dboperations.create_giftchannels_table(self.connection, guild.id)
 
     @commands.command()
     async def enablegift(self, ctx: commands.Context):
         embed = self.economy_embed(ctx)
         self.gift_money.start()
-        embed.description = f"Enable gift question."
+        embed.description = f"Enabled gift questions in subscribed channels."
         await ctx.send(embed=embed)
 
     @commands.command()
     async def giftchannel(self, ctx: commands.Context):
+        giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
+        print(giftchannels)
+        giftchannels_id_list = []
+        for channel in giftchannels:
+            giftchannels_id_list.append(channel[1])
         embed = self.economy_embed(ctx)
-        if ctx.channel not in self.gift_channels:
-            self.gift_channels.append(ctx.channel)
+        if ctx.channel.id not in giftchannels_id_list:
+            economy_dboperations.add_giftchannel(self.connection, ctx.guild.id, ctx.channel.id)
             embed.description = f"Added {ctx.channel.mention} to the list of gift channels."
             await ctx.send(embed=embed)
         else:
-            self.gift_channels.remove(ctx.channel)
+            economy_dboperations.delete_giftchannel(self.connection, ctx.guild.id, ctx.channel.id)
             embed.description = f"Removed {ctx.channel.mention} from the list of gift channels."
             await ctx.send(embed=embed)
 
