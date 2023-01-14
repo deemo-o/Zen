@@ -26,7 +26,8 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
         card_str = ""
         c = CurrencyRates()
         cex = c.get_rate("USD","CAD")
-
+        lvl, xyzlvl = '<:level:1059718470448730192>', '<:blacklevel:1059725946258739231>'
+        spell, trap = "<:spell:1060048999765250068>","<:trap:1060049002466381834>"
         for i in range(len(card)):
                 if card[i] != card[len(card)-1]:
                     card_str += card[i] + " "
@@ -37,15 +38,74 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
             found = False
             connected = yugioh_database.connect()
             result = yugioh_database.getCardByName(connected, card_str)
-        
+            print(result)
             if result != []:
-                print(result[0])
+                
                 found = True
                 embeds = []
                     #API from http://yugiohprices.com 
                 async with session.get(f"https://yugiohprices.com/api/get_card_prices/{card_str}") as response:
                     if response.status == 200:
-                        embeds.append(embed)
+                        ricon, attricon = [], []
+                        race = result[0][5]
+                        yugioh_operations.getricon(race, ricon)
+                        # description=f"**Type**: {ricon[0]} {data['data'][0]['race']}/{data['data'][0]['type']}{mstype}\n**Attribute**: {attricon[0]} {data['data'][0]['attribute']}\n**Link-{lvl} | ** **ATK**: {data['data'][0]['atk']}\n**Markers**: {'<:link_summon:1062107300489334834>'} {markers} \n")
+                        #description=f"**Type**: {ricon[0]} {result[0][5]}/{result[0][3]}{mstype}\n**Attribute**: {attricon[0]} {result[0][4]}\n**Level**: {lvl} {int(result[0][6])} **ATK**: {result[0][8]} **DEF**: {result[0][9]}")
+                        if "Monster" in result[0][3]:
+                            att = result[0][4]
+
+                            yugioh_operations.getattricon(att, attricon)
+
+                            if result[0][3] != "Normal Monster":
+                                mstype = "/Effect"
+                                if result[0][3] == "Link Monster":
+
+                                    embed = discord.Embed(
+                                    color=0x1abc9c,
+                                    title=f"**{result[0][2]}**",
+                                    description=f"**Type**: {ricon[0]} {result[0][5]}/{result[0][3]}{mstype}\n**Attribute**: {attricon[0]} {result[0][4]}\n**Link-{result[0][6]} | ** **ATK**: {result[0][9]}\n**Markers**: {'<:link_summon:1062107300489334834>'} {result[0][6]} \n")
+                            
+                                    embed.insert_field_at(index=1,name="Description", value=f"{result[0][8]}",inline=False)
+                                    # embed.set_thumbnail(url=data['data'][0]['card_images'][0]['image_url_cropped'])
+                                    embeds.append(embed)
+                                else:
+                                    if result[0][3] == "XYZ Monster":
+                                        mstype = "/Effect"
+                                        lvl = xyzlvl  
+                                    
+                                        yugioh_operations.getattricon(result[0][4], attricon)
+                                        embed = discord.Embed(
+                                                    color=0x1abc9c,
+                                                    title=f"**{result[0][2]}**",
+                                                    description=f"**Type**: {ricon[0]} {result[0][5]}/{result[0][3]}{mstype}\n**Attribute**: {attricon[0]} {result[0][4]}\n**Level**: {lvl} {int(result[0][6])} **ATK**: {result[0][9]} **DEF**: {result[0][10]}")
+
+                                        embed.insert_field_at(index=1,name="Description", value=f"{result[0][8]}",inline=False)
+                                        # embed.set_thumbnail(url=data['data'][0]['card_images'][0]['image_url_cropped'])
+                                        embeds.append(embed)
+
+                        elif result[0][3] == "Trap Card":
+                            embed = discord.Embed(
+                            color=0x1abc9c,
+                            title=f"**{result[0][2]}**",
+                            description=f"**Type**: {trap} {result[0][3]} {ricon[0]} \n")
+                    
+                            embed.insert_field_at(index=1,name="Description", value=f"{result[0][8]}",inline=False)
+                            # embed.set_thumbnail(url=data['data'][0]['card_images'][0]['image_url_cropped'])
+                            embeds.append(embed)
+
+                        elif result[0][3] == "Spell Card":
+                            embed = discord.Embed(
+                            color=0x1abc9c,
+                            title=f"**{result[0][2]}**",
+                            description=f"**Type**: {spell} {result[0][3]} {ricon[0]} \n")
+                    
+                            embed.insert_field_at(index=1,name="Description", value=f"{result[0][8]}",inline=False)
+                            # embed.set_thumbnail(url=data['data'][0]['card_images'][0]['image_url_cropped'])
+                            embeds.append(embed)
+
+                        else:
+                            mstype = "/Normal"
+
                         data2 = await response.json()
                         if data2['status'] == "success":
                             embed2 = discord.Embed(
@@ -113,9 +173,6 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                     if response.status == 200:
                         found = True
                         data = await response.json()
-
-                        lvl, xyzlvl = '<:level:1059718470448730192>', '<:blacklevel:1059725946258739231>'
-                        spell, trap = "<:spell:1060048999765250068>","<:trap:1060049002466381834>"
                         ricon, attricon = [], []
                         race = data['data'][0]['race']
                         
@@ -136,7 +193,6 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                                             markers += i + " | "
                                         else:
                                             markers += i
-
                                     embed = discord.Embed(
                                     color=0x1abc9c,
                                     title=f"**{data['data'][0]['name']}**",
@@ -144,6 +200,8 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                             
                                     embed.insert_field_at(index=1,name="Description", value=f"{data['data'][0]['desc']}",inline=False)
                                     embed.set_thumbnail(url=data['data'][0]['card_images'][0]['image_url_cropped'])
+                                    
+                                    yugioh_database.insertCard(connected, int(data['data'][0]['id']), str(data['data'][0]['name']), str(data['data'][0]['type']), str(data['data'][0]['attribute']), str(data['data'][0]['race']), lvl, markers, str(data['data'][0]['desc']), int(data['data'][0]['atk']), None,"blob")
 
                                 else:
                                     if data["data"][0]["type"] == "XYZ Monster":
@@ -156,6 +214,8 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                             
                                     embed.insert_field_at(index=1,name="Description", value=f"{data['data'][0]['desc']}",inline=False)
                                     embed.set_thumbnail(url=data['data'][0]['card_images'][0]['image_url_cropped'])
+
+                                    yugioh_database.insertCard(connected, int(data['data'][0]['id']), str(data['data'][0]['name']), str(data['data'][0]['type']), str(data['data'][0]['attribute']), str(data['data'][0]['race']), int(data['data'][0]['level']), None, str(data['data'][0]['desc']), int(data['data'][0]['atk']), int(data['data'][0]['def']),"blob")
 
 
                         elif data['data'][0]['type'] == "Trap Card":
@@ -178,9 +238,7 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                         else:
                             mstype = "/Normal"
                         
-
-                        yugioh_database.insertCard(connected, int(data['data'][0]['id']), str(data['data'][0]['name']), str(data['data'][0]['type']), str(data['data'][0]['attribute']), str(data['data'][0]['race']), str(data['data'][0]['desc']), int(data['data'][0]['atk']), int(data['data'][0]['def']),"blob")
-
+                        
                     else:
                         embed = discord.Embed(title="Oops! An error occured...",
                                             color=0x1abc9c,     

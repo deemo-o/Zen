@@ -10,12 +10,12 @@ def connect():
         print(error)
 
 
-def insertCard(conn, cardId, name, type, attribute, race, description, attack, defense, image):
+def insertCard(conn, cardId, name, type, attribute, race, level, linkval, description, attack, defense, image):
 
     with conn:
         c = conn.cursor()
         c.execute(yugioh_queries.TABLE_INIT_)
-        c.execute(yugioh_queries.INSERT_YGOCARD, (cardId, name, type, attribute, race, description, attack, defense, image))
+        c.execute(yugioh_queries.INSERT_YGOCARD, (cardId, name, type, attribute, race, level, linkval, description, attack, defense, image))
 
 
 def getCardByName(conn, name):
@@ -23,9 +23,11 @@ def getCardByName(conn, name):
         c = conn.cursor()
         c.execute(yugioh_queries.TABLE_INIT_)
         try:
+            # c.execute("SELECT * FROM yugioh;")
             c.execute(yugioh_queries.GET_YGOCARD_BY_NAME, (name,))
             return c.fetchall()
 
         except Exception as error:
             print(error)
+        
             
