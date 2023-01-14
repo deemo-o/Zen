@@ -184,4 +184,4 @@ for filename in os.listdir("./cogs"):
 
 load_dotenv()
 
-client.run(os.getenv("TOKEN"))
+client.run(os.getenv("EXPTOKEN"))
