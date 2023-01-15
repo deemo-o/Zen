@@ -10,12 +10,12 @@ def connect():
         print(error)
 
 
-def insertCard(conn, cardId, name, type, attribute, race, level, linkval, description, attack, defense, image):
+def insertCard(conn, cardId, name, type, attribute, race, level, linkval, description, attack, defense, image, scale):
 
     with conn:
         c = conn.cursor()
         c.execute(yugioh_queries.TABLE_INIT_)
-        c.execute(yugioh_queries.INSERT_YGOCARD, (cardId, name, type, attribute, race, level, linkval, description, attack, defense, image))
+        c.execute(yugioh_queries.INSERT_YGOCARD, (cardId, name, type, attribute, race, level, linkval, description, attack, defense, image, scale))
 
 
 def getCardByName(conn, name):
