@@ -1,11 +1,16 @@
 import asyncio
 import discord
 import random
-from discord.ext import commands
+import re
+from discord.ext import commands, tasks
 from discord import app_commands
-from utils.games_utils import battleship_dboperations
+from utils.games_utils import battleship_dboperations, typeracer_dboperations
 import random
 import asyncio
+import random
+import nltk
+from nltk.corpus import brown
+from utils.games_utils.paragraph_formatter import Formatter
 
 class Games(commands.Cog, description="Games commands."):
 
@@ -23,10 +28,299 @@ class Games(commands.Cog, description="Games commands."):
     def cog_command_error(self, ctx: commands.Context, error):
         print(error)
 
+    @tasks.loop(seconds=1, count=120)
+    async def timer(self, embed, message):
+        if self.timer.current_loop >= 110:
+            if self.timer.current_loop == 119:
+                embed.set_field_at(0, name="Time remaining", value=f"{120 - self.timer.current_loop} seconds left." if self.timer.current_loop != 120 else "You ran out of time!", inline=False)
+                await message.edit(embed=embed)
+                asyncio.sleep(1)
+                embed.set_field_at(0, name="Time remaining", value=f"You ran out of time!", inline=False)
+                return await message.edit(embed=embed)
+            embed.set_field_at(0, name="Time remaining", value=f"{120 - self.timer.current_loop} seconds left." if self.timer.current_loop != 120 else "You ran out of time!", inline=False)
+            return await message.edit(embed=embed)
+        if self.timer.current_loop % 5 == 0:
+            embed.set_field_at(0, name="Time remaining", value=f"{120 - self.timer.current_loop} seconds left." if self.timer.current_loop != 120 else "You ran out of time!", inline=False)
+            await message.edit(embed=embed)
+
+    @tasks.loop(count=1)
+    async def wait_for_typeracer_player_1(self, embed: discord.Embed, player: discord.Member, words, context: commands.Context):
+        response = await self.client.wait_for("message", check=lambda m: m.author == player and m.channel == context.channel, timeout=120)
+        player_words = response.content.split()
+        await response.delete()
+        typo_count = 0
+        missing_count = 0
+        if self.timer.is_running():
+            player_time = self.timer.current_loop
+            player_score = self.timer.current_loop
+            if len(player_words) < len(words):
+                missing_count += len(words) - len(player_words)
+            for x in range(min(len(words), len(player_words))):
+                if "\u2009" in response.content:
+                    typo_count = 42069
+                    player_words[x] = f"[noob]"
+                    continue
+                if player_words[x] != words[x]:
+                    if player_words[x] in words:
+                        if words.index(player_words[x]) - x <= 5:
+                            continue
+                        else:
+                            typo_count += 1
+                            player_words[x] = f"[{player_words[x]}]"
+                    else:
+                        typo_count += 1
+                        player_words[x] = f"[{player_words[x]}]"
+            player_score += (typo_count * 2)
+            player_score += (missing_count * 2)
+            answer = ""
+            for index, word in enumerate(player_words):
+                if index == len(player_words) - 1:
+                    answer += word
+                else:
+                    answer += f"{word} "
+            if missing_count == 0:
+                missing_count = "missed 0 word"
+            elif missing_count == 1:
+                missing_count = "missed 1 word"
+            else:
+                missing_count = f"missed {missing_count} words"
+            if typo_count == 0:
+                typo_count = "made 0 typo"
+            elif typo_count == 1:
+                typo_count = "made 1 typo"
+            else:
+                typo_count = f"made {typo_count} typos"
+            embed.add_field(name=f"{player.display_name.capitalize()}'s Result", value=f"{player.display_name.capitalize()} finished in {player_time} seconds, {typo_count} and {missing_count}!\nFinal score: {player_score}\n```INI\n{answer}\n```", inline=False)
+
+    @tasks.loop(count=1)
+    async def wait_for_typeracer_player_2(self, embed: discord.Embed, player: discord.Member, words, context: commands.Context):
+        response = await self.client.wait_for("message", check=lambda m: m.author == player and m.channel == context.channel, timeout=120)
+        player_words = response.content.split()
+        await response.delete()
+        typo_count = 0
+        missing_count = 0
+        if self.timer.is_running():
+            player_time = self.timer.current_loop
+            player_score = self.timer.current_loop
+            if len(player_words) < len(words):
+                missing_count += len(words) - len(player_words)
+            for x in range(min(len(words), len(player_words))):
+                if "\u2009" in response.content:
+                    typo_count = 42069
+                    player_words[x] = f"[noob]"
+                    continue
+                if player_words[x] != words[x]:
+                    if player_words[x] in words:
+                        if words.index(player_words[x]) - x <= 5:
+                            continue
+                        else:
+                            typo_count += 1
+                            player_words[x] = f"[{player_words[x]}]"
+                    else:
+                        typo_count += 1
+                        player_words[x] = f"[{player_words[x]}]"
+            player_score += (typo_count * 2)
+            player_score += (missing_count * 2)
+            answer = ""
+            for index, word in enumerate(player_words):
+                if index == len(player_words) - 1:
+                    answer += word
+                else:
+                    answer += f"{word} "
+            if missing_count == 0:
+                missing_count = "missed 0 word"
+            elif missing_count == 1:
+                missing_count = "missed 1 word"
+            else:
+                missing_count = f"missed {missing_count} words"
+            if typo_count == 0:
+                typo_count = "made 0 typo"
+            elif typo_count == 1:
+                typo_count = "made 1 typo"
+            else:
+                typo_count = f"made {typo_count} typos"
+            embed.add_field(name=f"{player.display_name.capitalize()}'s Result", value=f"{player.display_name.capitalize()} finished in {player_time} seconds, {typo_count} and {missing_count}!\nFinal score: {player_score}\n```INI\n{answer}\n```", inline=False)
+
     @commands.Cog.listener()
     async def on_ready(self):
         print("Games module has been loaded.")
         battleship_dboperations.create_table(self.connection)
+        typeracer_dboperations.create_table(self.connection)
+        nltk.download("brown")
+        nltk.download("punkt")
+
+    @commands.command()
+    async def typeracer(self, ctx: commands.Context, member: discord.Member = None):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | Typing Race"
+        if self.timer.is_running():
+            embed.description = "A typing race is currently ongoing. Please wait a little."
+            return await ctx.send(embed=embed)
+        text = brown.words()
+        sentences = nltk.sent_tokenize(" ".join(text))
+        random_paragraph = ""
+        random_paragraph += str(random.choice(sentences))
+        while len(random_paragraph) < 250:
+            random_paragraph += str(random.choice(sentences))
+        random_paragraph = Formatter.format_paragraph(random_paragraph)
+        display_paragraph = random_paragraph.replace(" ", "\u2009\u2009\u2009")
+        words = random_paragraph.split()
+        if member is None:
+            embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
+            embed.add_field(name="Solo Play", value="Your practicing your typing skills alone ;-;", inline=False)
+            message = await ctx.send(embed=embed)
+            await asyncio.sleep(10)
+            embed.set_field_at(1, name="Paragraph", value=f"```{display_paragraph}```", inline=False)
+            self.timer.start(embed=embed, message=message)
+            response: discord.Message = await self.client.wait_for("message", check=lambda m: m.author == ctx.author, timeout=120)
+            author_words = response.content.split()
+            await response.delete()
+            typo_count = 0
+            missing_count = 0
+            if self.timer.is_running():
+                author_time = self.timer.current_loop
+                author_score = self.timer.current_loop
+                self.timer.cancel()
+                if len(author_words) < len(words):
+                    missing_count += len(words) - len(author_words)
+                for x in range(min(len(words), len(author_words))):
+                    if "\u2009" in response.content:
+                        typo_count = 42069
+                        author_words[x] = f"[noob]"
+                        continue
+                    if author_words[x] != words[x]:
+                        if author_words[x] in words:
+                            if words.index(author_words[x]) - x <= 5:
+                                continue
+                            else:
+                                typo_count += 1
+                                author_words[x] = f"[{author_words[x]}]"
+                        else:
+                            typo_count += 1
+                            author_words[x] = f"[{author_words[x]}]"
+                author_score += (typo_count * 2)
+                author_score += (missing_count * 2)
+                answer = ""
+                for index, word in enumerate(author_words):
+                    if index == len(author_words) - 1:
+                        answer += word
+                    else:
+                        answer += f"{word} "
+                if missing_count == 0:
+                    missing_count = "missed 0 word"
+                elif missing_count == 1:
+                    missing_count = "missed 1 word"
+                else:
+                    missing_count = f"missed {missing_count} words"
+                if typo_count == 0:
+                    typo_count = "made 0 typo"
+                elif typo_count == 1:
+                    typo_count = "made 1 typo"
+                else:
+                    typo_count = f"made {typo_count} typos"
+                embed.insert_field_at(1, name="Result", value=f"You finished in {author_time} seconds, {typo_count} and {missing_count}!\n\nYour final score is: {author_score}")
+                embed.add_field(name="Your Text", value=f"```INI\n{answer}\n```")
+                return await message.edit(embed=embed)
+            embed.insert_field_at(1, name="Result", value="You Lost, Mongrel.")
+            return await message.edit(embed=embed)
+        else:
+            embed.description = f"{ctx.author.mention} has challenged {member.mention} to a typing race.\nType yes to accept the challenge and no to decline."
+            await ctx.send(embed=embed)
+            try:
+                response = await self.client.wait_for("message", check=lambda m: m.author == member, timeout=30)
+                if response.content.lower() in ["yes", "y"]:
+                    embed.description = f"{member.mention} has accepted the challenge!"
+                    await ctx.send(embed=embed)
+                    embed = discord.Embed(title="Zen | Typing Race", color=ctx.author.color)
+                if response.content.lower() in ["no", "n"]:
+                    embed.description = f"{member.mention} has declined the challenge!"
+                    return await ctx.send(embed=embed)
+            except asyncio.TimeoutError:
+                embed.description = "The challenge has timed out!"
+                return await ctx.send(embed=embed)
+            embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
+            embed.add_field(name="Match Play", value=f"This is a typing contest between {ctx.author.mention} and {member.mention}.", inline=False)
+            message = await ctx.send(embed=embed)
+            await asyncio.sleep(10)
+            embed.set_field_at(1, name="Paragraph", value=f"```{display_paragraph}```", inline=False)
+            self.timer.start(embed=embed, message=message)
+            result_embed = discord.Embed(title="Zen | Typing Race", color=ctx.author.color)
+            self.wait_for_typeracer_player_1.start(embed=result_embed, player=ctx.author, words=words, context=ctx)
+            self.wait_for_typeracer_player_2.start(embed=result_embed, player=member, words=words, context=ctx)
+            while True:
+                await asyncio.sleep(1)
+                if self.wait_for_typeracer_player_1.is_running() and self.wait_for_typeracer_player_2.is_running() and not self.timer.is_running():
+                    result_embed.add_field(name="Match Result", value="Both players timed out!", inline=False)
+                    return await ctx.send(embed=result_embed)
+                if self.wait_for_typeracer_player_2.is_running() and not self.timer.is_running():
+                    player1_rating = typeracer_dboperations.get_rating(self.connection, ctx.author.id)
+                    player2_rating = typeracer_dboperations.get_rating(self.connection, member.id)
+                    player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
+                    player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
+                    player1_new_rating = player1_rating + 32 * (1 - player1_expected_rating)
+                    player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
+                    typeracer_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
+                    typeracer_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
+                    result_embed.add_field(name="Match Result", value=f"{ctx.author.mention} wins the match due to time out!\n{ctx.author.display_name}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{member.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}", inline=False)
+                    return await ctx.send(embed=result_embed)
+                if self.wait_for_typeracer_player_1.is_running() and not self.timer.is_running():
+                    player1_rating = typeracer_dboperations.get_rating(self.connection, ctx.author.id)
+                    player2_rating = typeracer_dboperations.get_rating(self.connection, member.id)
+                    player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
+                    player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
+                    player1_new_rating = player1_rating + 32 * (0 - player1_expected_rating)
+                    player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
+                    typeracer_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
+                    typeracer_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
+                    result_embed.add_field(name="Match Result", value=f"{member.mention} wins the match due to time out!\n{member.name}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{ctx.author.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}", inline=False)
+                    return await ctx.send(embed=result_embed)
+                if not self.wait_for_typeracer_player_1.is_running() and not self.wait_for_typeracer_player_2.is_running():
+                    self.timer.cancel()
+                    string1 = result_embed.fields[0].value
+                    string2 = result_embed.fields[1].value
+                    player1_score = re.findall(r'\d+', string1)[3]
+                    player1_name = re.findall(r"^\w+", string1)[0]
+                    player2_score = re.findall(r'\d+', string2)[3]
+                    player2_name = re.findall(r"^\w+", string2)[0]
+                    player1 = ctx.author if player1_name == ctx.author.display_name.capitalize() else member
+                    player2 = ctx.author if player2_name == ctx.author.display_name.capitalize() else member
+                    if int(player1_score) < int(player2_score):
+                        player1_rating = typeracer_dboperations.get_rating(self.connection, player1.id)
+                        player2_rating = typeracer_dboperations.get_rating(self.connection, player2.id)
+                        player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
+                        player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
+                        player1_new_rating = player1_rating + 32 * (1 - player1_expected_rating)
+                        player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
+                        typeracer_dboperations.insert_rating(self.connection, player1.id, player1.name, round(player1_new_rating))
+                        typeracer_dboperations.insert_rating(self.connection, player2.id, player2.name, round(player2_new_rating))
+                        result_embed.add_field(name="Match Result", value=f"{player1.mention} wins the match!\n{player1.display_name}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{player2.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}", inline=False)
+                        return await ctx.send(embed=result_embed)
+                    if int(player2_score) < int(player1_score):
+                        player1_rating = typeracer_dboperations.get_rating(self.connection, player1.id)
+                        player2_rating = typeracer_dboperations.get_rating(self.connection, player2.id)
+                        player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
+                        player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
+                        player1_new_rating = player1_rating + 32 * (0 - player1_expected_rating)
+                        player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
+                        typeracer_dboperations.insert_rating(self.connection, player1.id, player1.name, round(player1_new_rating))
+                        typeracer_dboperations.insert_rating(self.connection, player2.id, player2.name, round(player2_new_rating))
+                        result_embed.add_field(name="Match Result", value=f"{player2.mention} wins the match!\n{player2.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}\n{player1.display_name}'s rating change: {player1_rating} -> {round(player1_new_rating)}", inline=False)
+                        return await ctx.send(embed=result_embed)
+                    if player1_score == player2_score:
+                        result_embed.add_field(name="Match Result", value="The match is a tie!", inline=False)
+                        return await ctx.send(embed=result_embed)
+
+    @commands.command()
+    async def typeracertop(self, ctx: commands.Context):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | Typeracer Leaderboard"
+        embed.description = ""
+        members_data = typeracer_dboperations.get_leaderboard(self.connection)
+        print(members_data)
+        for index, member in enumerate(members_data):
+            embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]} ELO**\n"
+
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def battleshiptop(self, ctx: commands.Context):

@@ -19,3 +19,19 @@ def get_battleship_rating(connection, userid):
 def get_all_ratings(connection):
     with connection:
         return connection.execute(games_queries.GET_ALL_RATINGS).fetchall()
+
+def create_typeracer_table(connection):
+    with connection:
+        connection.execute(games_queries.CREATE_TYPERACER_TABLE)
+    
+def insert_typeracer_rating(connection, userid, name, rating):
+    with connection:
+        connection.execute(games_queries.INSERT_TYPERACER_RATING, (userid, name, rating))
+
+def get_typeracer_rating(connection, userid):
+    with connection:
+        return connection.execute(games_queries.GET_TYPERACER_RATING_BY_USERID, (userid,)).fetchall()
+
+def get_all_typeracer_ratings(connection):
+    with connection:
+        return connection.execute(games_queries.GET_ALL_TYPERACER_RATINGS).fetchall()
