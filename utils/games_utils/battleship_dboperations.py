@@ -1,30 +1,28 @@
 import discord
-from database_utils import battleship_database
+from utils.database_utils import games_database
 
 def connection():
     try:
-        connection = battleship_database.connect()
-        print("Connected to Database From Battleship DBOperations!")
+        connection = games_database.connect()
         return connection
     except Exception as exception:
         return exception
 
 def create_table(connection):
     try:
-        battleship_database.create_battleship_table(connection)
-        print("Created Battleship Table")
+        games_database.create_battleship_table(connection)
     except Exception as exception:
         return exception
 
 def insert_rating(connection, userid, name, rating):
     try:
-        battleship_database.insert_battleship_rating(connection, userid, name, rating)
+        games_database.insert_battleship_rating(connection, userid, name, rating)
     except Exception as exception:
         return exception
 
 def get_rating(connection, userid):
     try:
-        data = battleship_database.get_battleship_rating(connection, userid)
+        data = games_database.get_battleship_rating(connection, userid)
         if not data:
             return 1200
         print(data)
@@ -36,6 +34,6 @@ def get_rating(connection, userid):
 
 def get_leaderboard(connection):
     try:
-        return battleship_database.get_all_ratings(connection)
+        return games_database.get_all_ratings(connection)
     except Exception as exception:
         return exception

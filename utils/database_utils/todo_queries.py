@@ -1,0 +1,6 @@
+CREATE_TASKS_TABLE = "CREATE TABLE IF NOT EXISTS tasks_{} (id INTEGER PRIMARY KEY, task TEXT);"
+CREATE_TASK = "INSERT OR REPLACE INTO tasks_{} (task) VALUES (?);"
+GET_ALL_TASKS = "SELECT * FROM tasks_{};"
+DELETE_TASK = "DELETE FROM tasks_{} WHERE task = ?;"
+UPDATE_TASK = "UPDATE tasks_{} SET task = ? WHERE task = ?;"
+DROP_TASKS_TABLE = "DROP TABLE tasks_{};"

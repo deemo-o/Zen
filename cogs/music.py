@@ -13,8 +13,8 @@ from typing import Union
 from wavelink import LavalinkException, LoadTrackError, YouTubeTrack, YouTubeMusicTrack, YouTubePlaylist, SoundCloudTrack
 from discord.ext import commands
 from discord import app_commands
-from music_utils.source import Source
-from music_utils.loop import Loop
+from utils.music_utils.source import Source
+from utils.music_utils.loop import Loop
 from dotenv import load_dotenv
 
 class Track(wavelink.Track):
@@ -116,6 +116,16 @@ class Music(commands.Cog, description="Music commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
+
+    def music_embed(self, ctx: commands.Context) -> discord.Embed:
+        embed = discord.Embed(title="Zen | Music", color=ctx.author.color, timestamp=datetime.now())
+        return embed
+
+    async def cog_command_error(self, ctx: commands.Context, error: str):
+        embed = self.music_embed(ctx)
+        if isinstance(error, Exception):
+            embed.description = str(error).capitalize()
+            return await ctx.send(embed=embed)
 
     async def start_nodes(self):
         await self.client.wait_until_ready()
@@ -249,7 +259,7 @@ class Music(commands.Cog, description="Music commands."):
         if not ctx.author.voice:
             await ctx.send("You need to be in a voice channel!")
         if not ctx.voice_client:
-            player: Player = await ctx.author.voice.channel.connect(cls=Player)
+            player: Player = await ctx.author.voice.channel.connect(cls=Player, reconnect=True)
         else:
             player: Player = ctx.voice_client
 
