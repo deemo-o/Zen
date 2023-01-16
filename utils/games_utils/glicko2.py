@@ -10,7 +10,7 @@ class Player:
     #Default rating for an unrated player
     default_rating = 1500
     #Default Rating Deviation, is 95% confident that the player's rating is between [rating - 200, rating + 200]
-    default_RD = 200
+    default_RD = 350
     #Default volatility of a player, indicates degree of expected fluctuation in the player's rating
     default_vol = 0.06
 
@@ -28,6 +28,29 @@ class Player:
         if typeracer_dboperations.get_rating(self.connection, user.id) == "Nope":
             typeracer_dboperations.insert_rating(self.connection, self.userid, self.name, self.rating, self.RD, self.vol, self.matchcount, self.lastmatch)
 
+    def update_players(member1, member2, result) -> str:
+        player1 = Player(member1)
+        player2 = Player(member2)
+        player1_current_rating, player2_current_rating = player1.rating, player2.rating
+        player1_current_RD, player2_current_RD = player1.RD, player2.RD
+        player1.update_rating([player2_current_rating], [player2_current_RD], [result])
+        player2.update_rating([player1_current_rating], [player1_current_RD], [1 - result])
+        player1_new_rating, player2_new_rating = player1.rating, player2.rating
+        typeracer_dboperations.update_rating(player1.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+        typeracer_dboperations.update_rating(player2.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+        if result == 1:
+            win_message = f"{member1.mention} wins the match!\n\
+                            {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** (+{round(player1_new_rating) - round(player1_current_rating)})\n\
+                            {member2.display_name}'s rating change: **{round(player2_current_rating)} -> {round(player2_new_rating)}** ({round(player2_new_rating) - round(player2_current_rating)})"
+        if result == 0:
+            win_message = f"{member2.mention} wins the match!\n\
+                            {member2.display_name}'s rating change: **{round(player2_current_rating)} -> {round(player2_new_rating)}** (+{round(player2_new_rating) - round(player2_current_rating)})\n\
+                            {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** ({round(player1_new_rating) - round(player1_current_rating)})"
+        if result == 0.5:
+            win_message = f"The match is a tie!\n\
+                            {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** (+{round(player1_new_rating) - round(player1_current_rating)})\n\
+                            {member2.display_name}'s rating change: **{round(player2_current_rating)} -> {round(player2_new_rating)}** ({round(player2_new_rating) - round(player2_current_rating)})"
+        return win_message
 
     def update_rating(self, rating_list, RD_list, result_list):
         #Convert the player's rating and RD to the Glicko-2 scale

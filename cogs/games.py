@@ -257,43 +257,16 @@ class Games(commands.Cog, description="Games commands."):
             while True:
                 await asyncio.sleep(1)
                 if self.wait_for_typeracer_player_1.is_running() and self.wait_for_typeracer_player_2.is_running() and not self.timer.is_running():
-                    player1 = Player(player1_discord)
-                    player2 = Player(player2_discord)
-                    player1_old_rating = player1.rating
-                    player2_old_rating = player2.rating
-                    player1_old_RD = player1.RD
-                    player2_old_RD = player2.RD
-                    player1.update_rating([player2_old_rating], [player2_old_RD], [0.5])
-                    player2.update_rating([player1_old_rating], [player1_old_RD], [0.5])
-                    typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-                    typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
-                    result_embed.add_field(name="Match Result", value=f"Both players timed out!\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
+                    message = Player.update_players(ctx.author, member, 0.5)
+                    result_embed.add_field(name="Match Result", value=message, inline=False)
                     return await ctx.send(embed=result_embed)
                 if self.wait_for_typeracer_player_2.is_running() and not self.timer.is_running():
-                    player1 = Player(ctx.author)
-                    player2 = Player(member)
-                    player1_old_rating = player1.rating
-                    player2_old_rating = player2.rating
-                    player1_old_RD = player1.RD
-                    player2_old_RD = player2.RD
-                    player1.update_rating([player2_old_rating], [player2_old_RD], [1])
-                    player2.update_rating([player1_old_rating], [player1_old_RD], [0])
-                    typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-                    typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
-                    result_embed.add_field(name="Match Result", value=f"{ctx.author.mention} wins the match due to time out!\n{ctx.author.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}\n{member.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}", inline=False)
+                    message = Player.update_players(ctx.author, member, 1)
+                    result_embed.add_field(name="Match Result", value=message, inline=False)
                     return await ctx.send(embed=result_embed)
                 if self.wait_for_typeracer_player_1.is_running() and not self.timer.is_running():
-                    player1 = Player(ctx.author)
-                    player2 = Player(member)
-                    player1_old_rating = player1.rating
-                    player2_old_rating = player2.rating
-                    player1_old_RD = player1.RD
-                    player2_old_RD = player2.RD
-                    player1.update_rating([player2_old_rating], [player2_old_RD], [0])
-                    player2.update_rating([player1_old_rating], [player1_old_RD], [1])
-                    typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-                    typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
-                    result_embed.add_field(name="Match Result", value=f"{member.mention} wins the match due to time out!\n{member.name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{ctx.author.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
+                    message = Player.update_players(member, ctx.author, 1)
+                    result_embed.add_field(name="Match Result", value=message, inline=False)
                     return await ctx.send(embed=result_embed)
                 if not self.wait_for_typeracer_player_1.is_running() and not self.wait_for_typeracer_player_2.is_running():
                     self.timer.cancel()
@@ -306,45 +279,17 @@ class Games(commands.Cog, description="Games commands."):
                     player1_discord = ctx.author if player1_name == ctx.author.display_name.capitalize() else member
                     player2_discord = ctx.author if player2_name == ctx.author.display_name.capitalize() else member
                     if int(player1_score) < int(player2_score):
-                        player1 = Player(player1_discord)
-                        player2 = Player(player2_discord)
-                        player1_old_rating = player1.rating
-                        player2_old_rating = player2.rating
-                        player1_old_RD = player1.RD
-                        player2_old_RD = player2.RD
-                        player1.update_rating([player2_old_rating], [player2_old_RD], [1])
-                        player2.update_rating([player1_old_rating], [player1_old_RD], [0])
-                        typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-                        typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
-                        result_embed.add_field(name="Match Result", value=f"{player1_discord.mention} wins the match!\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}", inline=False)
+                        message = Player.update_players(player1_discord, player2_discord, 1)
+                        result_embed.add_field(name="Match Result", value=message, inline=False)
                         return await ctx.send(embed=result_embed)
                     if int(player2_score) < int(player1_score):
-                        player1 = Player(player1_discord)
-                        player2 = Player(player2_discord)
-                        player1_old_rating = player1.rating
-                        player2_old_rating = player2.rating
-                        player1_old_RD = player1.RD
-                        player2_old_RD = player2.RD
-                        player1.update_rating([player2_old_rating], [player2_old_RD], [0])
-                        player2.update_rating([player1_old_rating], [player1_old_RD], [1])
-                        typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-                        typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
-                        result_embed.add_field(name="Match Result", value=f"{player2_discord.mention} wins the match!\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
+                        message = Player.update_players(player2_discord, player1_discord, 1)
+                        result_embed.add_field(name="Match Result", value=message, inline=False)
                         return await ctx.send(embed=result_embed)
                     if player1_score == player2_score:
-                        player1 = Player(player1_discord)
-                        player2 = Player(player2_discord)
-                        player1_old_rating = player1.rating
-                        player2_old_rating = player2.rating
-                        player1_old_RD = player1.RD
-                        player2_old_RD = player2.RD
-                        player1.update_rating([player2_old_rating], [player2_old_RD], [0.5])
-                        player2.update_rating([player1_old_rating], [player1_old_RD], [0.5])
-                        typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-                        typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
-                        result_embed.add_field(name="Match Result", value=f"The match is a tie!\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
+                        message = Player.update_players(player1_discord, player2_discord, 0.5)
+                        result_embed.add_field(name="Match Result", value=message, inline=False)
                         return await ctx.send(embed=result_embed)
-
     @commands.command()
     async def typeracertop(self, ctx: commands.Context):
         embed = self.games_embed(ctx)
