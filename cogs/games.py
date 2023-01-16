@@ -156,6 +156,9 @@ class Games(commands.Cog, description="Games commands."):
     async def typeracer(self, ctx: commands.Context, member: discord.Member = None):    
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race"
+        if member == ctx.author:
+            embed.description = "You can't challenge yourself!"
+            return await ctx.send(embed=embed)
         if self.timer.is_running():
             embed.description = "A typing race is currently ongoing. Please wait a little."
             return await ctx.send(embed=embed)
