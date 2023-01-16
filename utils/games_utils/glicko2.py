@@ -48,7 +48,7 @@ class Player:
         if time_elapsed * day < (2 * day):
             inactivity_RD == 0
         self.RD += inactivity_RD
-        #Updates RD to new pre-rating period value
+        #Update the RD to new pre-rating period value
         self.RD = math.sqrt((self.RD ** 2) + (self.vol ** 2))
         #New RD
         self.RD = 1 / math.sqrt((1 / (self.RD ** 2)) + (1 / v))
@@ -60,9 +60,9 @@ class Player:
         #Convert rating and RD back to original scale
         self.rating = (self.rating * 173.7178) + 1500
         self.RD = self.RD * 173.7178
-        #Updates player's match count
+        #Update the player's match count
         self.matchcount += len(rating_list)
-        #Updates player's last match date
+        #Update the player's last match date
         self.lastmatch = datetime.now().strftime("%Y-%m-%d %X")
 
     #Computes v
@@ -95,7 +95,7 @@ class Player:
         def f(x, delta, v, a, rating):
             ex = math.exp(x)
             numerator = ex * (delta ** 2 - rating ** 2 - v - ex)
-            denominator = 2 * ((rating ** 2 + v + ex)**2)
+            denominator = 2 * ((rating ** 2 + v + ex) ** 2)
             return  (numerator / denominator) - ((x - a) / (Player.tau ** 2))
         epsilon = 0.000001
         #2 Set the initial values of the iterative algorithm
