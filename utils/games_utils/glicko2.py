@@ -15,7 +15,7 @@ class Player:
 
     def __init__(self, user):
         self.connection = typeracer_dboperations.connection()
-        #Initializes the information of a player to their database data or default values
+        #Initialize the information of a player to their database data or default values
         self.userid = typeracer_dboperations.get_rating(self.connection, user.id)[0][1] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else user.id
         self.name = typeracer_dboperations.get_rating(self.connection, user.id)[0][2] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else user.name
         self.rating = typeracer_dboperations.get_rating(self.connection, user.id)[0][3] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else Player.default_rating
@@ -27,6 +27,7 @@ class Player:
         if typeracer_dboperations.get_rating(self.connection, user.id) == "Nope":
             typeracer_dboperations.insert_rating(self.connection, self.userid, self.name, self.rating, self.RD, self.vol, self.matchcount, self.lastmatch)
 
+    #Updates both players' ratings in the database and return a message based on the result
     def update_players(member1, member2, result) -> str:
         player1 = Player(member1)
         player2 = Player(member2)
