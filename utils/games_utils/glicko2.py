@@ -5,11 +5,11 @@ from utils.games_utils import typeracer_dboperations
 
 class Player:
 
-    #System constant, tau (works best between 0.3 and 0.12) lower reduces impact of upsets
+    #System constant, τ (works best between 0.3 and 0.12) lower reduces impact of upsets
     tau = 0.5
     #Default rating for an unrated player
     default_rating = 1500
-    #Default Rating Deviation, is 95% confident that the player'r rating is between [rating - 200, rating + 200]
+    #Default Rating Deviation, is 95% confident that the player's rating is between [rating - 200, rating + 200]
     default_RD = 200
     #Default volatility of a player, indicates degree of expected fluctuation in the player's rating
     default_vol = 0.06
@@ -33,7 +33,7 @@ class Player:
         #Convert the player's rating and RD to the Glicko-2 scale
         self.rating = (self.rating - 1500) / 173.7178
         self.RD = self.RD / 173.7178
-        #Convert opponent's ratings and RD to the Glicko-2 scale
+        #Convert opponents' ratings and RDs to the Glicko-2 scale
         rating_list = [(x - 1500) / 173.7178 for x in rating_list]
         RD_list = [x / 173.7178 for x in RD_list]
         #Computes the quantity v, the estimated variance of player's rating based on results (1 for the moment)
