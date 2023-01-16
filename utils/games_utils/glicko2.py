@@ -4,7 +4,6 @@ import math
 from utils.games_utils import typeracer_dboperations
 
 class Player:
-
     #System constant, τ (works best between 0.3 and 0.12) lower reduces impact of upsets
     tau = 0.5
     #Default rating for an unrated player
