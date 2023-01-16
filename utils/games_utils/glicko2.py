@@ -5,13 +5,17 @@ from utils.games_utils import typeracer_dboperations
 
 class Player:
 
+    #System constant, tau (works best between 0.3 and 0.12) lower reduces impact of upsets
     tau = 0.5
+    #Default rating for an unrated player
     default_rating = 1500
-    default_RD = 350
+    #Default Rating Deviation, is 95% confident that the player'r rating is between [rating - 200, rating + 200]
+    default_RD = 200
+    #Default volatility of a player, indicates degree of expected fluctuation in the player's rating
     default_vol = 0.06
 
     def __init__(self, user):
-        self.connection = typeracer_dboperations.connection()
+        #Initializes the information of a player to their database data or default values
         self.userid = typeracer_dboperations.get_rating(self.connection, user.id)[0][1] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else user.id
         self.name = typeracer_dboperations.get_rating(self.connection, user.id)[0][2] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else user.name
         self.rating = typeracer_dboperations.get_rating(self.connection, user.id)[0][3] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else Player.default_rating
@@ -19,66 +23,79 @@ class Player:
         self.vol = typeracer_dboperations.get_rating(self.connection, user.id)[0][5] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else Player.default_vol
         self.matchcount = typeracer_dboperations.get_rating(self.connection, user.id)[0][6] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else 0
         self.lastmatch = typeracer_dboperations.get_rating(self.connection, user.id)[0][7] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else datetime.now().strftime("%Y-%m-%d %X")
-        if typeracer_dboperations.get_rating(self.connection, user.id) == "Nope":
+        #If player isn't in database, add them to the database
+        if typeracer_dboperations.get_rating(typeracer_dboperations.connection(), user.id) == "Nope":
             typeracer_dboperations.insert_rating(self.connection, self.userid, self.name, self.rating, self.RD, self.vol, self.matchcount, self.lastmatch)
 
+
     def update_rating(self, rating_list, RD_list, result_list):
-        self.convert_rating(self.rating)
-        self.convert_RD(self.RD)
+        #Convert the player's rating and RD to the Glicko-2 scale
+        self.rating = (self.rating - 1500) / 173.7178
+        self.RD = self.RD / 173.7178
+        #Convert opponent's ratings and RD to the Glicko-2 scale
         rating_list = [(x - 1500) / 173.7178 for x in rating_list]
         RD_list = [x / 173.7178 for x in RD_list]
+        #Computes the quantity v, the estimated variance of player's rating based on results (1 for the moment)
         v = self.v(rating_list, RD_list)
+        #New volatility, σ′
         self.vol = self.new_volatility(rating_list, RD_list, result_list, v)
+        #Currently increases the RD by 5 for each day of inactivity (inactivity starts at 2 days)
+        current_time = datetime.strptime(datetime.now().strftime("%Y-%m-%d %X"), "%Y-%m-%d %X")
+        day = 24 * 3600
+        time_elapsed = (current_time - datetime.strptime(self.lastmatch, "%Y-%m-%d %X")).total_seconds() / day
+        inactivity_RD = time_elapsed * 5
+        if time_elapsed * day < (2 * day):
+            inactivity_RD == 0
+        self.RD += inactivity_RD
+        #Updates RD to new pre-rating period value
         self.RD = math.sqrt((self.RD ** 2) + (self.vol ** 2))
+        #New RD
         self.RD = 1 / math.sqrt((1 / (self.RD ** 2)) + (1 / v))
-        tempSum = 0
+        #New rating
+        sum = 0
         for x in range(len(rating_list)):
-            tempSum += self.g(RD_list[x]) * (result_list[x] - self.E(rating_list[x], RD_list[x]))
-        self.rating += (self.RD ** 2) * tempSum
-        self.convert_back_rating()
-        self.convert_back_RD()
+            sum += self.g(RD_list[x]) * (result_list[x] - self.E(rating_list[x], RD_list[x]))
+        self.rating += (self.RD ** 2) * sum
+        #Convert rating and RD back to original scale
+        self.rating = (self.rating * 173.7178) + 1500
+        self.RD = self.RD * 173.7178
+        #Updates player's match count
         self.matchcount += 1
+        #Updates player's last match date
         self.lastmatch = datetime.now().strftime("%Y-%m-%d %X")
 
-    def convert_rating(self, rating):
-        self.rating = (rating - 1500) / 173.7178
-
-    def convert_back_rating(self):
-        self.rating = (self.rating * 173.7178) + 1500
-
-    def convert_RD(self, RD):
-        self.RD = RD / 173.7178
-
-    def convert_back_RD(self):
-        self.RD = self.RD * 173.7178
-
+    #Computes v
     def v(self, rating_list, RD_list):
-        tempSum = 0
+        sum = 0
         for x in range(len(rating_list)):
-            tempE = self.E(rating_list[x], RD_list[x])
-            tempSum += (self.g(RD_list[x]) ** 2) * tempE * (1 - tempE)
-        return 1 / tempSum
+            E = self.E(rating_list[x], RD_list[x])
+            sum += (self.g(RD_list[x]) ** 2) * E * (1 - E)
+        return 1 / sum
 
+    #Glicko-2 g(φ)
     def g(self, RD):
         return 1 / math.sqrt(1 + (3 * (RD ** 2)) / (math.pi ** 2))
 
+    #Glicko-2 E(μ,μⱼ,φⱼ)
     def E(self, rating, RD):
         return 1 / (1 + math.exp(-1 * self.g(RD) * (self.rating - rating)))
-       
+
+    #Computes the quantity Δ, the estimated improvement in rating (compares old rating to performance rating based on results)
     def delta(self, rating_list, RD_list, result_list, v):
-        tempSum = 0
+        sum = 0
         for x in range(len(rating_list)):
-            tempSum += self.g(RD_list[x]) * (result_list[x] - self.E(rating_list[x], RD_list[x]))
-        return v * tempSum
-              
+            sum += self.g(RD_list[x]) * (result_list[x] - self.E(rating_list[x], RD_list[x]))
+        return v * sum
+    
+    #New volatility
     def new_volatility(self, rating_list, RD_list, result_list, v):
-        #1 Let a = ln(sigma^2), and define f(x), define epsilon = 0.000001
+        #1 Let a = ln(σ^2), and define f(x), define ε = 0.000001
         a = math.log(self.vol ** 2)
         def f(x, delta, v, a, rating):
             ex = math.exp(x)
-            num1 = ex * (delta ** 2 - rating ** 2 - v - ex)
-            denom1 = 2 * ((rating ** 2 + v + ex)**2)
-            return  (num1 / denom1) - ((x - a) / (Player.tau ** 2))
+            numerator = ex * (delta ** 2 - rating ** 2 - v - ex)
+            denominator = 2 * ((rating ** 2 + v + ex)**2)
+            return  (numerator / denominator) - ((x - a) / (Player.tau ** 2))
         epsilon = 0.000001
         #2 Set the initial values of the iterative algorithm
         A = a
@@ -94,7 +111,7 @@ class Player:
         #3 Let fa = f(A) and fb = f(B)
         fA = f(A, delta, v, a, self.rating)
         fB = f(B, delta, v, a, self.rating)
-        #4 While |B - A| > epsilon, carry out the following steps.
+        #4 While |B - A| > ε, carry out the following steps
         while math.fabs(B - A) > epsilon:
           #a
           C = A + ((A - B) * fA) / (fB - fA)
@@ -108,5 +125,5 @@ class Player:
           #c
           B = C
           fB = fC
-        #5 Once |B - A| <= epsilon, set sigma' <- e^A/2
+        #5 Once |B - A| <= ε, set σ′ <- e^A/2
         return math.exp(A / 2)
