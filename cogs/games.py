@@ -228,7 +228,7 @@ class Games(commands.Cog, description="Games commands."):
                 embed.insert_field_at(1, name="Result", value=f"You finished in {author_time} seconds, {typo_count} and {missing_count}!\n\nYour final score is: {author_score}")
                 embed.add_field(name="Your Text", value=f"```INI\n{answer}\n```")
                 return await message.edit(embed=embed)
-            embed.insert_field_at(1, name="Result", value="You Lost, Mongrel.")
+            embed.insert_field_at(1, name="Result", value="Your time has ran out!")
             return await message.edit(embed=embed)
         else:
             embed.description = f"{ctx.author.mention} has challenged {member.mention} to a typing race.\nType yes to accept the challenge and no to decline."
