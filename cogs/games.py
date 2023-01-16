@@ -151,15 +151,9 @@ class Games(commands.Cog, description="Games commands."):
         typeracer_dboperations.create_table(self.connection)
         nltk.download("brown")
         nltk.download("punkt")
-
-    @commands.command()
-    async def test(self, ctx: commands.Context):
-        player = Player(ctx.author)
-        player.update_rating([1400, 1550, 1700], [30, 100, 300], [1, 0, 0])
-        typeracer_dboperations.update_rating(self.connection, player.rating, player.RD, player.vol, player.matchcount, player.lastmatch, player.userid)
     
     @commands.command()
-    async def typeracer(self, ctx: commands.Context, member: discord.Member = None):
+    async def typeracer(self, ctx: commands.Context, member: discord.Member = None):    
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race"
         if self.timer.is_running():
