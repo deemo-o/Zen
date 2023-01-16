@@ -23,11 +23,27 @@ def getCardByName(conn, name):
         c = conn.cursor()
         c.execute(yugioh_queries.TABLE_INIT_)
         try:
-            # c.execute("SELECT * FROM yugioh;")
             c.execute(yugioh_queries.GET_YGOCARD_BY_NAME, (name,))
             return c.fetchall()
 
         except Exception as error:
             print(error)
         
+def updateCardByFieldAndName(conn, field, newVal, name):
+    with conn:
+        try:
+            c = conn.cursor()
+            c.execute(yugioh_queries.UPDATE_YGOCARD.format(field), (newVal, name))
+            c.execute(yugioh_queries.GET_YGOCARD_BY_NAME, (name,))
+            return c.fetchall()
+        except Exception as error:
+            print(error)
             
+def deleteCardByName(conn, name):
+    with conn:
+        try:
+            c = conn.cursor()
+            c.execute(yugioh_queries.DELETE_YGOCARD, name)
+
+        except Exception as error:
+            print(error)

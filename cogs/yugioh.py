@@ -452,6 +452,42 @@ class Yugioh(commands.Cog, description="Yugioh commands."):
                         PageCounterStyle=PageCounterStyle,
                         InitialPage=InitialPage,
                         timeout=timeout).start(ctx, pages=embeds)
-                    
+
+    @commands.command(aliases=["cc"], brief="Changes the value of a YuGiOh card for a given name and field.", description="Changes the entry inside of a field and name specified by the user.")
+    async def updatecard(self, ctx: commands.Context, field: str, newVal: str, *card: str):
+        card_str = ''
+        for i in range(len(card)):
+            if card[i] != card[len(card)-1]:
+                card_str += card[i] + " "
+            else:
+                card_str += card[i]
+        connected = yugioh_database.connect()
+        previousVal = yugioh_database.getCardByName(connected, card_str)
+        updatedcard = yugioh_database.updateCardByFieldAndName(connected, field, newVal, card_str)
+        embed = discord.Embed(title="UPDATED: {}".format(updatedcard[0][2]),
+                              color=0x1abc9c,
+                              description=f"Change Done for: {previousVal[0][2]} => {field}: {newVal}")
+
+
+        await ctx.send(embed=embed)
+
+    @commands.command(aliases=["dc"], brief="Deletes a YuGiOh card for a given name.", description="Deletes a YuGiOh card specified by the user.")
+    async def deletecard(self, ctx: commands.Context, *card: str):
+        card_str = ''
+        for i in range(len(card)):
+            if card[i] != card[len(card)-1]:
+                card_str += card[i] + " "
+            else:
+                card_str += card[i]
+        connected = yugioh_database.connect()
+        yugioh_database.deleteCardByName(connected, card_str)
+
+        embed = discord.Embed(title="DELETED: {}".format(card_str),
+                              color=0x1abc9c,
+                              description=f"The following card has been successfully deleted: {card_str}")
+
+        await ctx.send(embed=embed)
+
+                
 async def setup(client):
     await client.add_cog(Yugioh(client))
