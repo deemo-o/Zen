@@ -11,6 +11,7 @@ import random
 import nltk
 from nltk.corpus import brown
 from utils.games_utils.paragraph_formatter import Formatter
+from utils.games_utils.glicko2 import Player
 
 class Games(commands.Cog, description="Games commands."):
 
@@ -56,10 +57,11 @@ class Games(commands.Cog, description="Games commands."):
             if len(player_words) < len(words):
                 missing_count += len(words) - len(player_words)
             for x in range(min(len(words), len(player_words))):
-                if "\u2009" in response.content:
+                if "\u034F" in response.content:
                     typo_count = 42069
-                    player_words[x] = f"[noob]"
-                    continue
+                    player_words.clear()
+                    player_words.append(f"[{player.display_name} is a dirty cheater!]")
+                    break
                 if player_words[x] != words[x]:
                     if player_words[x] in words:
                         if words.index(player_words[x]) - x <= 5:
@@ -105,10 +107,11 @@ class Games(commands.Cog, description="Games commands."):
             if len(player_words) < len(words):
                 missing_count += len(words) - len(player_words)
             for x in range(min(len(words), len(player_words))):
-                if "\u2009" in response.content:
+                if "\u034F" in response.content:
                     typo_count = 42069
-                    player_words[x] = f"[noob]"
-                    continue
+                    player_words.clear()
+                    player_words.append(f"[{player.display_name} is a dirty cheater!]")
+                    break
                 if player_words[x] != words[x]:
                     if player_words[x] in words:
                         if words.index(player_words[x]) - x <= 5:
@@ -150,6 +153,12 @@ class Games(commands.Cog, description="Games commands."):
         nltk.download("punkt")
 
     @commands.command()
+    async def test(self, ctx: commands.Context):
+        player = Player(ctx.author)
+        player.update_rating([1400, 1550, 1700], [30, 100, 300], [1, 0, 0])
+        typeracer_dboperations.update_rating(self.connection, player.rating, player.RD, player.vol, player.matchcount, player.lastmatch, player.userid)
+    
+    @commands.command()
     async def typeracer(self, ctx: commands.Context, member: discord.Member = None):
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race"
@@ -163,7 +172,7 @@ class Games(commands.Cog, description="Games commands."):
         while len(random_paragraph) < 250:
             random_paragraph += str(random.choice(sentences))
         random_paragraph = Formatter.format_paragraph(random_paragraph)
-        display_paragraph = random_paragraph.replace(" ", "\u2009\u2009\u2009")
+        display_paragraph = random_paragraph.replace(" ", "\u034F ")
         words = random_paragraph.split()
         if member is None:
             embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
@@ -184,10 +193,11 @@ class Games(commands.Cog, description="Games commands."):
                 if len(author_words) < len(words):
                     missing_count += len(words) - len(author_words)
                 for x in range(min(len(words), len(author_words))):
-                    if "\u2009" in response.content:
+                    if "\u034F" in response.content and x == min(len(words), len(author_words)) - 1:
                         typo_count = 42069
-                        author_words[x] = f"[noob]"
-                        continue
+                        author_words.clear()
+                        author_words.append(f"[{ctx.author.display_name} is a dirty cheater!]")
+                        break
                     if author_words[x] != words[x]:
                         if author_words[x] in words:
                             if words.index(author_words[x]) - x <= 5:
@@ -250,29 +260,43 @@ class Games(commands.Cog, description="Games commands."):
             while True:
                 await asyncio.sleep(1)
                 if self.wait_for_typeracer_player_1.is_running() and self.wait_for_typeracer_player_2.is_running() and not self.timer.is_running():
-                    result_embed.add_field(name="Match Result", value="Both players timed out!", inline=False)
+                    player1 = Player(player1_discord)
+                    player2 = Player(player2_discord)
+                    player1_old_rating = player1.rating
+                    player2_old_rating = player2.rating
+                    player1_old_RD = player1.RD
+                    player2_old_RD = player2.RD
+                    player1.update_rating([player2_old_rating], [player2_old_RD], [0.5])
+                    player2.update_rating([player1_old_rating], [player1_old_RD], [0.5])
+                    typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+                    typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+                    result_embed.add_field(name="Match Result", value=f"Both players timed out!\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
                     return await ctx.send(embed=result_embed)
                 if self.wait_for_typeracer_player_2.is_running() and not self.timer.is_running():
-                    player1_rating = typeracer_dboperations.get_rating(self.connection, ctx.author.id)
-                    player2_rating = typeracer_dboperations.get_rating(self.connection, member.id)
-                    player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
-                    player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
-                    player1_new_rating = player1_rating + 32 * (1 - player1_expected_rating)
-                    player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
-                    typeracer_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
-                    typeracer_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
-                    result_embed.add_field(name="Match Result", value=f"{ctx.author.mention} wins the match due to time out!\n{ctx.author.display_name}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{member.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}", inline=False)
+                    player1 = Player(ctx.author)
+                    player2 = Player(member)
+                    player1_old_rating = player1.rating
+                    player2_old_rating = player2.rating
+                    player1_old_RD = player1.RD
+                    player2_old_RD = player2.RD
+                    player1.update_rating([player2_old_rating], [player2_old_RD], [1])
+                    player2.update_rating([player1_old_rating], [player1_old_RD], [0])
+                    typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+                    typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+                    result_embed.add_field(name="Match Result", value=f"{ctx.author.mention} wins the match due to time out!\n{ctx.author.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}\n{member.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}", inline=False)
                     return await ctx.send(embed=result_embed)
                 if self.wait_for_typeracer_player_1.is_running() and not self.timer.is_running():
-                    player1_rating = typeracer_dboperations.get_rating(self.connection, ctx.author.id)
-                    player2_rating = typeracer_dboperations.get_rating(self.connection, member.id)
-                    player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
-                    player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
-                    player1_new_rating = player1_rating + 32 * (0 - player1_expected_rating)
-                    player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
-                    typeracer_dboperations.insert_rating(self.connection, ctx.author.id, ctx.author.name, round(player1_new_rating))
-                    typeracer_dboperations.insert_rating(self.connection, member.id, member.name, round(player2_new_rating))
-                    result_embed.add_field(name="Match Result", value=f"{member.mention} wins the match due to time out!\n{member.name}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{ctx.author.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}", inline=False)
+                    player1 = Player(ctx.author)
+                    player2 = Player(member)
+                    player1_old_rating = player1.rating
+                    player2_old_rating = player2.rating
+                    player1_old_RD = player1.RD
+                    player2_old_RD = player2.RD
+                    player1.update_rating([player2_old_rating], [player2_old_RD], [0])
+                    player2.update_rating([player1_old_rating], [player1_old_RD], [1])
+                    typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+                    typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+                    result_embed.add_field(name="Match Result", value=f"{member.mention} wins the match due to time out!\n{member.name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{ctx.author.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
                     return await ctx.send(embed=result_embed)
                 if not self.wait_for_typeracer_player_1.is_running() and not self.wait_for_typeracer_player_2.is_running():
                     self.timer.cancel()
@@ -282,32 +306,46 @@ class Games(commands.Cog, description="Games commands."):
                     player1_name = re.findall(r"^\w+", string1)[0]
                     player2_score = re.findall(r'\d+', string2)[3]
                     player2_name = re.findall(r"^\w+", string2)[0]
-                    player1 = ctx.author if player1_name == ctx.author.display_name.capitalize() else member
-                    player2 = ctx.author if player2_name == ctx.author.display_name.capitalize() else member
+                    player1_discord = ctx.author if player1_name == ctx.author.display_name.capitalize() else member
+                    player2_discord = ctx.author if player2_name == ctx.author.display_name.capitalize() else member
                     if int(player1_score) < int(player2_score):
-                        player1_rating = typeracer_dboperations.get_rating(self.connection, player1.id)
-                        player2_rating = typeracer_dboperations.get_rating(self.connection, player2.id)
-                        player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
-                        player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
-                        player1_new_rating = player1_rating + 32 * (1 - player1_expected_rating)
-                        player2_new_rating = player2_rating + 32 * (0 - player2_expected_rating)
-                        typeracer_dboperations.insert_rating(self.connection, player1.id, player1.name, round(player1_new_rating))
-                        typeracer_dboperations.insert_rating(self.connection, player2.id, player2.name, round(player2_new_rating))
-                        result_embed.add_field(name="Match Result", value=f"{player1.mention} wins the match!\n{player1.display_name}'s rating change: {player1_rating} -> {round(player1_new_rating)}\n{player2.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}", inline=False)
+                        player1 = Player(player1_discord)
+                        player2 = Player(player2_discord)
+                        player1_old_rating = player1.rating
+                        player2_old_rating = player2.rating
+                        player1_old_RD = player1.RD
+                        player2_old_RD = player2.RD
+                        player1.update_rating([player2_old_rating], [player2_old_RD], [1])
+                        player2.update_rating([player1_old_rating], [player1_old_RD], [0])
+                        typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+                        typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+                        result_embed.add_field(name="Match Result", value=f"{player1_discord.mention} wins the match!\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}", inline=False)
                         return await ctx.send(embed=result_embed)
                     if int(player2_score) < int(player1_score):
-                        player1_rating = typeracer_dboperations.get_rating(self.connection, player1.id)
-                        player2_rating = typeracer_dboperations.get_rating(self.connection, player2.id)
-                        player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
-                        player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
-                        player1_new_rating = player1_rating + 32 * (0 - player1_expected_rating)
-                        player2_new_rating = player2_rating + 32 * (1 - player2_expected_rating)
-                        typeracer_dboperations.insert_rating(self.connection, player1.id, player1.name, round(player1_new_rating))
-                        typeracer_dboperations.insert_rating(self.connection, player2.id, player2.name, round(player2_new_rating))
-                        result_embed.add_field(name="Match Result", value=f"{player2.mention} wins the match!\n{player2.display_name}'s rating change: {player2_rating} -> {round(player2_new_rating)}\n{player1.display_name}'s rating change: {player1_rating} -> {round(player1_new_rating)}", inline=False)
+                        player1 = Player(player1_discord)
+                        player2 = Player(player2_discord)
+                        player1_old_rating = player1.rating
+                        player2_old_rating = player2.rating
+                        player1_old_RD = player1.RD
+                        player2_old_RD = player2.RD
+                        player1.update_rating([player2_old_rating], [player2_old_RD], [0])
+                        player2.update_rating([player1_old_rating], [player1_old_RD], [1])
+                        typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+                        typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+                        result_embed.add_field(name="Match Result", value=f"{player2_discord.mention} wins the match!\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
                         return await ctx.send(embed=result_embed)
                     if player1_score == player2_score:
-                        result_embed.add_field(name="Match Result", value="The match is a tie!", inline=False)
+                        player1 = Player(player1_discord)
+                        player2 = Player(player2_discord)
+                        player1_old_rating = player1.rating
+                        player2_old_rating = player2.rating
+                        player1_old_RD = player1.RD
+                        player2_old_RD = player2.RD
+                        player1.update_rating([player2_old_rating], [player2_old_RD], [0.5])
+                        player2.update_rating([player1_old_rating], [player1_old_RD], [0.5])
+                        typeracer_dboperations.update_rating(self.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
+                        typeracer_dboperations.update_rating(self.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+                        result_embed.add_field(name="Match Result", value=f"The match is a tie!\n{player2_discord.display_name}'s rating change: {round(player2_old_rating)} -> {round(player2.rating)}\n{player1_discord.display_name}'s rating change: {round(player1_old_rating)} -> {round(player1.rating)}", inline=False)
                         return await ctx.send(embed=result_embed)
 
     @commands.command()
@@ -318,7 +356,7 @@ class Games(commands.Cog, description="Games commands."):
         members_data = typeracer_dboperations.get_leaderboard(self.connection)
         print(members_data)
         for index, member in enumerate(members_data):
-            embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]} ELO**\n"
+            embed.description += f"{index + 1}. <@{member[1]}> - **{round(member[3])} ELO**\n"
 
         await ctx.send(embed=embed)
 

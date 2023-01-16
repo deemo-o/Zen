@@ -24,9 +24,13 @@ def create_typeracer_table(connection):
     with connection:
         connection.execute(games_queries.CREATE_TYPERACER_TABLE)
     
-def insert_typeracer_rating(connection, userid, name, rating):
+def insert_typeracer_rating(connection, userid, name, rating, ratingdeviation, volatility, matchcount, lastmatch):
     with connection:
-        connection.execute(games_queries.INSERT_TYPERACER_RATING, (userid, name, rating))
+        connection.execute(games_queries.INSERT_TYPERACER_RATING, (userid, name, rating, ratingdeviation, volatility, matchcount, lastmatch))
+
+def update_typeracer_rating(connection, rating, ratingdeviation, volatility, matchcount, lastmatch, userid):
+    with connection:
+        connection.execute(games_queries.UPDATE_TYPERACER_RATING, (rating, ratingdeviation, volatility, matchcount, lastmatch, userid,))
 
 def get_typeracer_rating(connection, userid):
     with connection:
