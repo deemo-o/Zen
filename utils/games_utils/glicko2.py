@@ -15,6 +15,7 @@ class Player:
     default_vol = 0.06
 
     def __init__(self, user):
+        self.connection = typeracer_dboperations.connection()
         #Initializes the information of a player to their database data or default values
         self.userid = typeracer_dboperations.get_rating(self.connection, user.id)[0][1] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else user.id
         self.name = typeracer_dboperations.get_rating(self.connection, user.id)[0][2] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else user.name
@@ -24,7 +25,7 @@ class Player:
         self.matchcount = typeracer_dboperations.get_rating(self.connection, user.id)[0][6] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else 0
         self.lastmatch = typeracer_dboperations.get_rating(self.connection, user.id)[0][7] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else datetime.now().strftime("%Y-%m-%d %X")
         #If player isn't in database, add them to the database
-        if typeracer_dboperations.get_rating(typeracer_dboperations.connection(), user.id) == "Nope":
+        if typeracer_dboperations.get_rating(self.connection, user.id) == "Nope":
             typeracer_dboperations.insert_rating(self.connection, self.userid, self.name, self.rating, self.RD, self.vol, self.matchcount, self.lastmatch)
 
 
@@ -60,7 +61,7 @@ class Player:
         self.rating = (self.rating * 173.7178) + 1500
         self.RD = self.RD * 173.7178
         #Updates player's match count
-        self.matchcount += 1
+        self.matchcount += len(rating_list)
         #Updates player's last match date
         self.lastmatch = datetime.now().strftime("%Y-%m-%d %X")
 
