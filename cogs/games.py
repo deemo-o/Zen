@@ -153,6 +153,17 @@ class Games(commands.Cog, description="Games commands."):
         nltk.download("punkt")
     
     @commands.command()
+    async def typeracertop(self, ctx: commands.Context):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | Typeracer Leaderboard"
+        embed.description = ""
+        members_data = typeracer_dboperations.get_leaderboard(self.connection)
+        print(members_data)
+        for index, member in enumerate(members_data):
+            embed.description += f"{index + 1}. <@{member[1]}> - **{round(member[3])} ELO**\n"
+        await ctx.send(embed=embed)
+
+    @commands.command()
     async def typeracer(self, ctx: commands.Context, member: discord.Member = None):    
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race"
@@ -290,17 +301,6 @@ class Games(commands.Cog, description="Games commands."):
                         message = Player.update_players(player1_discord, player2_discord, 0.5)
                         result_embed.add_field(name="Match Result", value=message, inline=False)
                         return await ctx.send(embed=result_embed)
-    @commands.command()
-    async def typeracertop(self, ctx: commands.Context):
-        embed = self.games_embed(ctx)
-        embed.title = "Zen | Typeracer Leaderboard"
-        embed.description = ""
-        members_data = typeracer_dboperations.get_leaderboard(self.connection)
-        print(members_data)
-        for index, member in enumerate(members_data):
-            embed.description += f"{index + 1}. <@{member[1]}> - **{round(member[3])} ELO**\n"
-
-        await ctx.send(embed=embed)
 
     @commands.command()
     async def battleshiptop(self, ctx: commands.Context):
@@ -311,7 +311,6 @@ class Games(commands.Cog, description="Games commands."):
         print(members_data)
         for index, member in enumerate(members_data):
             embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]} ELO**\n"
-
         await ctx.send(embed=embed)
 
     @commands.command()
