@@ -61,6 +61,8 @@ class Player:
         if (time_elapsed * day) < (2 * day):
             inactivity_RD = 0
         self.RD += inactivity_RD
+        if self.RD > 350:
+            self.RD = 350
         #Convert the player's rating and RD to the Glicko-2 scale
         self.rating = (self.rating - 1500) / 173.7178
         self.RD = self.RD / 173.7178
