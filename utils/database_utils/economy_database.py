@@ -11,7 +11,7 @@ def create_members_table(connection):
 def create_ranks_table(connection):
     with connection:
         connection.execute(economy_queries.CREATE_RANKS_TABLE)
-
+        
 def create_giftchannels_table(connection, guildid):
     with connection:
         connection.execute(economy_queries.CREATE_GIFTCHANNELS_TABLE.format(guildid))
@@ -67,7 +67,7 @@ def get_all_members_by_networth(connection):
 def get_all_ranks(connection):
     with connection:
         return connection.execute(economy_queries.GET_ALL_RANKS).fetchall()
-
+        
 def get_all_ranks_by_position(connection):
     with connection:
         return connection.execute(economy_queries.GET_ALL_RANKS_BY_POSITION).fetchall()
@@ -95,3 +95,4 @@ def delete_rank(connection, position):
 def delete_giftchannel(connection, guildid, channelid):
     with connection:
         connection.execute(economy_queries.DELETE_GIFTCHANNEL.format(guildid), (channelid,))
+

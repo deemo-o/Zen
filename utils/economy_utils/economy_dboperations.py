@@ -36,6 +36,7 @@ def add_guild(connection, guildid, guildname):
 def add_giftchannel(connection, guildid, channelid):
     try:
         economy_database.add_giftchannel(connection, guildid, channelid)
+        
     except Exception as exception:
         return exception
 
@@ -66,6 +67,7 @@ def add_member_money(connection, member: discord.Member, money: int):
 def update_rank(connection, name, minsalary, maxsalary, required, position):
     try:
         economy_database.update_rank(connection, name, minsalary, maxsalary, required, position)
+        
     except Exception as exception:
         return exception
 
@@ -77,13 +79,13 @@ def check_member_exists(connection, member: discord.Member):
             return True
     except Exception as exception:
         return exception
-
+        
 def get_all_guilds(connection):
     try:
         return economy_database.get_all_guilds(connection)
     except Exception as exception:
         return exception
-
+        
 def get_rank_minmax_salary(connection, rank: str):
     try:
         rank_data = economy_database.get_rank_by_name(connection, rank)
@@ -98,7 +100,7 @@ def get_leaderboard(connection):
         return economy_database.get_all_members_by_networth(connection)
     except Exception as exception:
         return exception
-
+        
 def get_all_giftchannels(connection, guildid):
     try:
         return economy_database.get_all_giftchannels(connection, guildid)
@@ -140,13 +142,13 @@ def get_rank_with_position(connection, position: int):
         return economy_database.get_rank_by_position(connection, position)
     except Exception as exception:
         return exception
-
+        
 def get_all_ranks(connection):
     try:
         return economy_database.get_all_ranks(connection)
     except Exception as exception:
         return exception
-
+        
 def create_member(connection, userid, name, money, rank):
     try:
         economy_database.add_member(connection, userid, name, money, rank)

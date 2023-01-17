@@ -16,9 +16,9 @@ def get_battleship_rating(connection, userid):
     with connection:
         return connection.execute(games_queries.GET_BATTLE_SHIP_RATING_BY_USERID, (userid,)).fetchall()
 
-def get_all_ratings(connection):
+def get_all_battleship_ratings(connection):
     with connection:
-        return connection.execute(games_queries.GET_ALL_RATINGS).fetchall()
+        return connection.execute(games_queries.GET_ALL_BATTLESHIP_RATINGS).fetchall()
 
 def create_typeracer_table(connection):
     with connection:
@@ -39,3 +39,19 @@ def get_typeracer_rating(connection, userid):
 def get_all_typeracer_ratings(connection):
     with connection:
         return connection.execute(games_queries.GET_ALL_TYPERACER_RATINGS).fetchall()
+
+def create_rps_table(connection):
+    with connection:
+        connection.execute(games_queries.CREATE_RPS_TABLE)
+        
+def insert_rps_rating(connection, userid, name, rating):
+     with connection:
+        connection.execute(games_queries.INSERT_RPS_RATING, (userid, name, rating))
+
+def get_rps_rating(connection, userid):
+    with connection:
+        return connection.execute(games_queries.GET_RPS_RATING_BY_USERID, (userid,)).fetchall()
+
+def get_all_rps_ratings(connection):
+    with connection:
+        return connection.execute(games_queries.GET_ALL_RPS_RATINGS).fetchall()

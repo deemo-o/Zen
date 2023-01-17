@@ -21,3 +21,4 @@ GET_RANK_BY_POSITION = "SELECT * FROM ranks WHERE position = ?;"
 DELETE_MEMBER = "DELETE FROM members WHERE userid = ?;"
 DELETE_RANK = "DELETE FROM ranks WHERE position = ?;"
 DELETE_GIFTCHANNEL = "DELETE FROM giftchannels_{} WHERE channelid = ?"
+
