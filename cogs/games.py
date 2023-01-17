@@ -153,7 +153,7 @@ class Games(commands.Cog, description="Games commands."):
         typeracer_dboperations.create_table(self.connection)
         nltk.download("brown")
         nltk.download("punkt")
-    
+
     @commands.command()
     async def typeracertop(self, ctx: commands.Context):
         embed = self.games_embed(ctx)

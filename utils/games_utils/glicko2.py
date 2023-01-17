@@ -53,6 +53,14 @@ class Player:
         return win_message
 
     def update_rating(self, rating_list, RD_list, result_list):
+        #Currently increases the RD by 5 for each day of inactivity (inactivity starts at 2 days)
+        current_time = datetime.strptime(datetime.now().strftime("%Y-%m-%d %X"), "%Y-%m-%d %X")
+        day = 24 * 3600
+        time_elapsed = (current_time - datetime.strptime(self.lastmatch, "%Y-%m-%d %X")).total_seconds() / day
+        inactivity_RD = time_elapsed * 5
+        if (time_elapsed * day) < (2 * day):
+            inactivity_RD = 0
+        self.RD += inactivity_RD
         #Convert the player's rating and RD to the Glicko-2 scale
         self.rating = (self.rating - 1500) / 173.7178
         self.RD = self.RD / 173.7178
@@ -63,14 +71,6 @@ class Player:
         v = self.v(rating_list, RD_list)
         #New volatility, σ′
         self.vol = self.new_volatility(rating_list, RD_list, result_list, v)
-        #Currently increases the RD by 5 for each day of inactivity (inactivity starts at 2 days)
-        current_time = datetime.strptime(datetime.now().strftime("%Y-%m-%d %X"), "%Y-%m-%d %X")
-        day = 24 * 3600
-        time_elapsed = (current_time - datetime.strptime(self.lastmatch, "%Y-%m-%d %X")).total_seconds() / day
-        inactivity_RD = time_elapsed * 5
-        if time_elapsed * day < (2 * day):
-            inactivity_RD == 0
-        self.RD += inactivity_RD
         #Update the RD to new pre-rating period value
         self.RD = math.sqrt((self.RD ** 2) + (self.vol ** 2))
         #New RD
