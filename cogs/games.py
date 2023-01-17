@@ -4,6 +4,7 @@ import random
 from discord.ext import commands
 from discord import app_commands
 from utils.games_utils import battleship_dboperations
+from utils.games_utils import rps_dboperations
 import random
 import asyncio
 
@@ -12,6 +13,7 @@ class Games(commands.Cog, description="Games commands."):
     def __init__(self, client: commands.Bot):
         self.client = client
         self.connection = battleship_dboperations.connection()
+        self.rps_connection = rps_dboperations.connection()
 
     def games_embed(self, ctx: commands.Context) -> discord.Embed:
         embed = discord.Embed(title="Zen | Games", color=ctx.author.color)
@@ -27,6 +29,7 @@ class Games(commands.Cog, description="Games commands."):
     async def on_ready(self):
         print("Games module has been loaded.")
         battleship_dboperations.create_table(self.connection)
+        rps_dboperations.create_table(self.rps_connection)
 
     @commands.command()
     async def battleshiptop(self, ctx: commands.Context):
@@ -333,11 +336,23 @@ class Games(commands.Cog, description="Games commands."):
                 return
 
             await member.send(f"It's {ctx.author.mention}'s turn!")
+    
+    @commands.command()
+    async def rpstop(self, ctx: commands.Context):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | Rock-Paper-Scissors Leaderboard"
+        embed.description = ""
+        members_data = rps_dboperations.get_leaderboard(self.rps_connection)
+        print(members_data)
+        for index, member in enumerate(members_data):
+            embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]} ELO**\n"
+        await ctx.send(embed=embed)
 
-    @commands.command(aliases=["rps"], brief="Play Rock-Paper-Scissors, Best of 5", description="""This command will allow you to play a 
+    @commands.command(aliases=["hello"], brief="Play Rock-Paper-Scissors, Best of 5", description="""This command will allow you to play a 
     Rock-Paper-Scissors match, @ a user after the command to play against them or you will be matched against the infamous Zen Bot.""")
     async def rockpaperscissors(self, ctx: commands.Context, member: discord.Member = None):
         timeOutEmbed = discord.Embed(title="Zen | Games", description="Too long! Game cancelled.")
+        multiplayerMatch = False
         botMoves = {
             1: 'Rock',
             2: 'Paper',
@@ -351,9 +366,9 @@ class Games(commands.Cog, description="Games commands."):
             's': 'Scissors',
             'scissors': 'Scissors'
         }
-
+        
         def checkAnswer(answer):
-            if answer.content.lower() in ["y", "yes", "n", "no"] and answer.channel == ctx.channel:
+            if answer.author == member and answer.content.lower() in ["y", "yes", "n", "no"] and answer.channel == ctx.channel:
                 return True
 
         def checkP1Move(move):
@@ -392,28 +407,32 @@ class Games(commands.Cog, description="Games commands."):
             return
         else:
             player2 = member.name
-            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""{member.mention}, You have been challenged to a game of Rock-Paper-Scissors by {player1}! Do you accept? (y/n)"""), delete_after=60)
+            multiplayerMatch = True
+            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{member.mention}, You have been challenged to a game of Rock-Paper-Scissors by {player1}! Do you accept? (y/n)"), delete_after=60)
             try:
                 ans = await self.client.wait_for('message', check=checkAnswer, timeout=60)
             except asyncio.TimeoutError:
                 await ctx.send(embed=timeOutEmbed, delete_after=60)
                 return
             if ans.content.lower() in ["y", "yes", ]:
-                await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{ans.author.name} has accepted the challenge!"), delete_after=60)
+                await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""{ans.author.name} 
+                has accepted the challenge!"""), delete_after=60)
             else:
-                await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{ans.author.name} has declined the challenge!"), delete_after=60)
+                await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""{ans.author.name}
+                has declined the challenge!"""), delete_after=60)
                 return
 
-        await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"""Starting a game of Rock-Paper-Scissors... {player1} will be matched against {player2}. Each player will be privately messaged to get their weapon of choice."""), delete_after=60)
+        await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"Starting a game of Rock-Paper-Scissors... {player1} will be matched against {player2}. Each player will be privately messaged to get their weapon of choice."), delete_after=60)
 
-        chooseMove = "Choose between: Rock('r'), Paper('p'), or Scissors('s')"
+        chooseMove = """Choose between: Rock("r"), Paper("p"), or Scissors("s")"""
         p1Points = 0
         p2Points = 0
-        round = 1
+        gameRound = 1
         finalWinner = None
 
         while p1Points < 2 or p2Points < 2:
-            await ctx.author.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
+            await ctx.author.send(embed=discord.Embed(title="Zen | Games", description=f"""Round {gameRound}: 
+            {chooseMove}"""), delete_after=60)
             try:
                 p1Input = await self.client.wait_for("message", check=checkP1Move, timeout=60)
                 p1Move = playerMoves[p1Input.content.lower()]
@@ -424,7 +443,8 @@ class Games(commands.Cog, description="Games commands."):
             if player2 == "The Zen Bot":
                 p2Move = botMoves[random.randint(1, 3)]
             else:
-                await member.send(embed=discord.Embed(title="Zen | Games", description=f"Round {round}: {chooseMove}"), delete_after=60)
+                await member.send(embed=discord.Embed(title="Zen | Games", description=f"""Round {gameRound}: 
+                {chooseMove}"""), delete_after=60)
                 try:
                     p2Input = await self.client.wait_for("message", check=checkP2Move, timeout=60)
                     p2Move = playerMoves[p2Input.content.lower()]
@@ -453,13 +473,27 @@ class Games(commands.Cog, description="Games commands."):
             elif p2Points == 2:
                 finalWinner = player2
                 break
-            round += 1
+            gameRound += 1
 
-        if p1Points != p2Points:
-            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{finalWinner} wins the game! Final Score: {max(p1Points, p2Points)} - {min(p1Points, p2Points)}"), delete_after=60)
-        else:
-            await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"Tie! Final Score: {p1Points} - {p2Points}"), delete_after=60)
-
+        await ctx.send(embed=discord.Embed(title="Zen | Games", description=f"{finalWinner} wins the game! Final Score: {max(p1Points, p2Points)} - {min(p1Points, p2Points)}"), delete_after=60)
+        
+        if multiplayerMatch:
+            player1_rating = rps_dboperations.get_rating(self.rps_connection, ctx.author.id)
+            player2_rating = rps_dboperations.get_rating(self.rps_connection, member.id)
+            print(1, player1_rating, player2_rating)
+            player1_expected_rating = self.expected_rating(player1_rating, player2_rating)
+            player2_expected_rating = self.expected_rating(player2_rating, player1_rating)
+            print(2, player1_expected_rating, player2_expected_rating)
+            if finalWinner == player1:
+                player1_new_rating = round(player1_rating + 32 * (1 - player1_expected_rating))
+                player2_new_rating = round(player2_rating + 32 * (0 - player2_expected_rating))
+            else:
+                player1_new_rating = round(player1_rating + 32 * (0 - player1_expected_rating))
+                player2_new_rating = round(player2_rating + 32 * (1 - player2_expected_rating))
+            print(player1_new_rating, player2_new_rating)
+            rps_dboperations.insert_rating(self.rps_connection, ctx.author.id, ctx.author.name, player1_new_rating)
+            rps_dboperations.insert_rating(self.rps_connection, member.id, member.name, player2_new_rating)
+            await ctx.send(f"""{ctx.author.mention}'s rating change: {player1_rating} -> {player1_new_rating}\n{member.mention}'s rating change: {player2_rating} - > {player2_new_rating}""")
 
 async def setup(client):
     await client.add_cog(Games(client))

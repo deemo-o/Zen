@@ -45,4 +45,4 @@ async def on_command_error(ctx, error):
     else:
         print(error)
 
-client.run(os.getenv("TOKEN"))
+client.run(os.getenv("EXPTOKEN"))
