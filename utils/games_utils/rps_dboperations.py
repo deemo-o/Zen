@@ -1,9 +1,9 @@
 import discord
-from database_utils import rps_database
+from utils.database_utils import games_database
 
 def connection():
     try:
-      connection = rps_database.connect()
+      connection = games_database.connect()
       print("Connected to Database From RPS DBOperations!")
       return connection
     except Exception as exception:
@@ -11,20 +11,20 @@ def connection():
 
 def create_table(connection):
     try:
-      rps_database.create_rps_table(connection)
+      games_database.create_rps_table(connection)
       print("Created RPS Table")
     except Exception as exception:
       return exception
       
 def insert_rating(connection, userid, name, rating):
     try:
-      rps_database.insert_rps_rating(connection, userid, name, rating)
+      games_database.insert_rps_rating(connection, userid, name, rating)
     except Exception as exception:
       return exception
 
 def get_rating(connection, userid):
     try:
-      data = rps_database.get_rps_rating(connection, userid)
+      data = games_database.get_rps_rating(connection, userid)
       if not data:
           return 1200
       print(data)
@@ -36,6 +36,6 @@ def get_rating(connection, userid):
 
 def get_leaderboard(connection):
     try:
-      return rps_database.get_all_ratings(connection)
+      return games_database.get_all_rps_ratings(connection)
     except Exception as exception:
       return exception

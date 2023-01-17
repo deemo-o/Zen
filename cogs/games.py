@@ -348,7 +348,7 @@ class Games(commands.Cog, description="Games commands."):
             embed.description += f"{index + 1}. <@{member[1]}> - **{member[3]} ELO**\n"
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["hello"], brief="Play Rock-Paper-Scissors, Best of 5", description="""This command will allow you to play a 
+    @commands.command(aliases=["rps"], brief="Play Rock-Paper-Scissors, Best of 5", description="""This command will allow you to play a 
     Rock-Paper-Scissors match, @ a user after the command to play against them or you will be matched against the infamous Zen Bot.""")
     async def rockpaperscissors(self, ctx: commands.Context, member: discord.Member = None):
         timeOutEmbed = discord.Embed(title="Zen | Games", description="Too long! Game cancelled.")

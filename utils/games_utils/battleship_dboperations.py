@@ -34,6 +34,6 @@ def get_rating(connection, userid):
 
 def get_leaderboard(connection):
     try:
-        return games_database.get_all_ratings(connection)
+        return games_database.get_all_battleship_ratings(connection)
     except Exception as exception:
         return exception

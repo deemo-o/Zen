@@ -1,5 +1,4 @@
 import discord
-
 from utils.database_utils import economy_database
 
 def connection():
