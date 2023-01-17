@@ -234,7 +234,7 @@ class Games(commands.Cog, description="Games commands."):
             embed.description = f"{ctx.author.mention} has challenged {member.mention} to a typing race.\nType yes to accept the challenge and no to decline."
             await ctx.send(embed=embed)
             try:
-                response = await self.client.wait_for("message", check=lambda m: m.author == member, timeout=30)
+                response = await self.client.wait_for("message", check=lambda m: m.author == member and m.content.lower() in ["yes", "y", "no", "n"], timeout=30)
                 if response.content.lower() in ["yes", "y"]:
                     embed.description = f"{member.mention} has accepted the challenge!"
                     await ctx.send(embed=embed)
