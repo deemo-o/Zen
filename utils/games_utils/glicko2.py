@@ -8,7 +8,7 @@ class Player:
     tau = 0.5
     #Default rating for an unrated player
     default_rating = 1500
-    #Default Rating Deviation, is 95% confident that the player's rating is between [rating - 200, rating + 200]
+    #Default Rating Deviation, is 95% confident that the player's rating is between [rating - (RD * 2), rating + (RD * 2)]
     default_RD = 350
     #Default volatility of a player, indicates degree of expected fluctuation in the player's rating
     default_vol = 0.06
