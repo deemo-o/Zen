@@ -40,8 +40,6 @@ class Games(commands.Cog, description="Games commands."):
 
     @tasks.loop(seconds=5)
     async def matchmaking(self):
-        print(self.in_typeracer_unrated_queue)
-        print(self.in_typeracer_rated_queue)
         @tasks.loop(seconds=1, count=120)
         async def timer(embed, message1, message2):
             if timer.current_loop >= 110:
@@ -249,7 +247,7 @@ class Games(commands.Cog, description="Games commands."):
         nltk.download("brown")
         nltk.download("punkt")
 
-    @commands.command()
+    @commands.command(brief="Typeracer leaderboard.", description="This command will display the highest typeracer players.")
     async def typeracertop(self, ctx: commands.Context):
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typeracer Leaderboard"
@@ -259,7 +257,7 @@ class Games(commands.Cog, description="Games commands."):
             embed.description += f"{index + 1}. <@{member[1]}> - **{round(member[3])} ELO**\n"
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(brief="Lets you search for a typeracer match")
     async def typeracer(self, ctx: commands.Context, matchtype: str = "unrated"):
         if not self.matchmaking.is_running():
             self.matchmaking.start()
@@ -273,7 +271,6 @@ class Games(commands.Cog, description="Games commands."):
             embed.description = f"{ctx.author.mention} is searching for an opponent..."
             message = await ctx.send(embed=embed)
             while ctx.author in self.in_typeracer_unrated_queue:
-                print(f"{ctx.author.mention} is searching for a game!")
                 await asyncio.sleep(5)
             embed.description = f"{ctx.author.mention} found a game!"
             await message.edit(embed=embed, delete_after=30)
@@ -283,7 +280,6 @@ class Games(commands.Cog, description="Games commands."):
             embed.description = f"{ctx.author.mention} is searching for an opponent..."
             message = await ctx.send(embed=embed)
             while ctx.author in self.in_typeracer_rated_queue:
-                print(f"{ctx.author.mention} is searching for a game!")
                 await asyncio.sleep(5)
             embed.description = f"{ctx.author.mention} found a game!"
             await message.edit(embed=embed, delete_after=30)
