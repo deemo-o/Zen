@@ -3,11 +3,17 @@ INSERT_BATTLESHIP_RATING = "INSERT OR REPLACE INTO battleship (userid, name, rat
 GET_BATTLE_SHIP_RATING_BY_USERID = "SELECT * FROM battleship where userid = ?;"
 GET_ALL_BATTLESHIP_RATINGS = "SELECT * FROM battleship ORDER BY rating DESC;"
 
+CREATE_TYPERACER_QUEUE_ANNOUNCEMENTCHANNELS_TABLE = "CREATE TABLE IF NOT EXISTS typeracer_queue_announcementchannels (id INTEGER PRIMARY KEY, channelid INTEGER UNIQUE);"
 CREATE_TYPERACER_TABLE = "CREATE TABLE IF NOT EXISTS typeracer_ratings (id INTEGER PRIMARY KEY, userid INTEGER UNIQUE, name TEXT, rating INTEGER, ratingdeviation REAL, volatility REAL, matchcount INTEGER, wins INTEGER, losses INTEGER, draws INTEGER, lastmatch TEXT);"
 INSERT_TYPERACER_RATING = "INSERT INTO typeracer_ratings (userid, name, rating, ratingdeviation, volatility, matchcount, wins, losses, draws, lastmatch) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);"
+INSERT_TYPERACER_QUEUE_ANNOUNCEMENTCHANNEL = "INSERT INTO typeracer_queue_announcementchannels (channelid) VALUES (?);"
 UPDATE_TYPERACER_RATING = "UPDATE typeracer_ratings SET rating = ?, ratingdeviation = ?, volatility = ?, matchcount = ?, wins = ?, losses = ?, draws = ?, lastmatch = ? WHERE userid = ?"
 GET_TYPERACER_RATING_BY_USERID = "SELECT * FROM typeracer_ratings where userid = ?;"
+GET_TYPERACER_QUEUE_ANNOUNCEMENTCHANNEL_BY_ID = "SELECT * FROM typeracer_queue_announcementchannels WHERE channelid = ?;"
 GET_ALL_TYPERACER_RATINGS = "SELECT * FROM typeracer_ratings ORDER BY rating DESC;"
+GET_ALL_TYPERACER_QUEUE_ANNOUNCEMENTCHANNELS = "SELECT * FROM typeracer_queue_announcementchannels;"
+DELETE_TYPERACER_QUEUE_ANNOUNCEMENT_CHANNEL = "DELETE FROM typeracer_queue_announcementchannels WHERE channelid = ?;"
+
 
 CREATE_RPS_TABLE = "CREATE TABLE IF NOT EXISTS rps (id INTEGER PRIMARY KEY, userid INTEGER UNIQUE, name TEXT, rating INTEGER);"
 INSERT_RPS_RATING = "INSERT OR REPLACE INTO rps (userid, name, rating) VALUES (?, ?, ?);"
