@@ -19,10 +19,11 @@ class Games(commands.Cog, description="Games commands."):
 
     def __init__(self, client: commands.Bot):
         self.client = client
-        self.in_typeracer_game_list = []
-        self.in_typeracer_unrated_queue = []
-        self.in_typeracer_rated_queue = []
-        self.in_typeracer_cancel_list = []
+        self.typeracer_games = []
+        self.typeracer_unrated_queue = []
+        self.typeracer_rated_queue = []
+        self.typeracer_cancel_list = []
+        self.typeracer_rematch = []
         self.typeracer_challenges = defaultdict(list)
         self.connection = battleship_dboperations.connection()
         self.rps_connection = rps_dboperations.connection()
@@ -46,17 +47,17 @@ class Games(commands.Cog, description="Games commands."):
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
             await interaction.response.defer()
-            if interaction.user not in self.in_typeracer_unrated_queue and interaction.user in self.in_typeracer_rated_queue:
-                self.in_typeracer_rated_queue.remove(interaction.user)
-            if interaction.user not in self.in_typeracer_unrated_queue and interaction.user not in self.in_typeracer_rated_queue:
-                self.in_typeracer_unrated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_unrated_queue and interaction.user in self.typeracer_rated_queue:
+                self.typeracer_rated_queue.remove(interaction.user)
+            if interaction.user not in self.typeracer_unrated_queue and interaction.user not in self.typeracer_rated_queue:
+                self.typeracer_unrated_queue.insert(0, interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -67,17 +68,17 @@ class Games(commands.Cog, description="Games commands."):
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
             await interaction.response.defer()
-            if interaction.user not in self.in_typeracer_rated_queue and interaction.user in self.in_typeracer_unrated_queue:
-                self.in_typeracer_unrated_queue.remove(interaction.user)
-            if interaction.user not in self.in_typeracer_rated_queue and interaction.user not in self.in_typeracer_unrated_queue:
-                self.in_typeracer_rated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_rated_queue and interaction.user in self.typeracer_unrated_queue:
+                self.typeracer_unrated_queue.remove(interaction.user)
+            if interaction.user not in self.typeracer_rated_queue and interaction.user not in self.typeracer_unrated_queue:
+                self.typeracer_rated_queue.insert(0, interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -86,18 +87,18 @@ class Games(commands.Cog, description="Games commands."):
 
         async def leave_queue_button_callback(interaction: discord.Interaction):
             await interaction.response.defer()
-            if interaction.user in self.in_typeracer_unrated_queue:
-                self.in_typeracer_unrated_queue.remove(interaction.user)
-            if interaction.user in self.in_typeracer_rated_queue:
-                self.in_typeracer_rated_queue.remove(interaction.user)
-            self.in_typeracer_cancel_list.append(interaction.user)
+            if interaction.user in self.typeracer_unrated_queue:
+                self.typeracer_unrated_queue.remove(interaction.user)
+            if interaction.user in self.typeracer_rated_queue:
+                self.typeracer_rated_queue.remove(interaction.user)
+            self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -113,11 +114,11 @@ class Games(commands.Cog, description="Games commands."):
         embed = discord.Embed(color=discord.Color.from_rgb(248, 175, 175))
         embed.title = "Zen | Typing Race Queue"
         unrated_queue = ""
-        for player in self.in_typeracer_unrated_queue:
+        for player in self.typeracer_unrated_queue:
             rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
             unrated_queue += f"{player.mention} - **{rating}**\n"
         rated_queue = ""
-        for player in self.in_typeracer_rated_queue:
+        for player in self.typeracer_rated_queue:
             rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
             rated_queue += f"{player.mention} - **{rating}**\n"
         embed.add_field(name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -143,11 +144,11 @@ class Games(commands.Cog, description="Games commands."):
                     await message.delete()
                 return
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -278,92 +279,169 @@ class Games(commands.Cog, description="Games commands."):
                     typo_count = f"made {typo_count} typos"
                 embed.add_field(name=f"{player.display_name.capitalize()}'s Result", value=f"{player.display_name.capitalize()} finished in {player_time} seconds, {typo_count} and {missing_count}!\nFinal score: {player_score}\n```INI\n{answer}\n```", inline=False)
         
+        async def rematch_button_callback(interaction: discord.Interaction):
+            async def accept_button_callback(interaction: discord.Interaction):
+                await interaction.response.defer()
+                if interaction.user not in self.typeracer_rematch:
+                    self.typeracer_rematch.append(interaction.user)
+                    embed = interaction.message.embeds[0]
+                    embed.description = "You have accepted the rematch request!"
+                    await interaction.message.edit(embed=embed, view=None)
+                if player2 in self.typeracer_rematch and player1 in self.typeracer_rematch:
+                    self.typeracer_rematch.remove(player1)
+                    self.typeracer_rematch.remove(player2)
+                    return await game_start()
+
+            async def decline_button_callback(interaction: discord.Interaction):
+                await interaction.response.defer()
+                if interaction.user not in self.typeracer_rematch:
+                    player = player2 if interaction.user == player1 else player1
+                    self.typeracer_rematch.remove(player)
+                    embed = interaction.message.embeds[0]
+                    embed.description = "You have declined the rematch request!"
+                    return await interaction.message.edit(embed=embed, view=None)
+
+            await interaction.response.defer()
+            await interaction.message.edit(embed=interaction.message.embeds[0], view=None)
+            accept_button = Button(label="Accept", style=discord.ButtonStyle.green)
+            accept_button.callback = accept_button_callback
+            decline_button = Button(label="Decline", style=discord.ButtonStyle.red)
+            decline_button.callback = decline_button_callback
+            view = View()
+            view.add_item(accept_button)
+            view.add_item(decline_button)
+            embed = discord.Embed()
+            if player1 not in self.typeracer_rematch and player2 not in self.typeracer_rematch:
+                self.typeracer_rematch.append(player1 if interaction.user == player1 else player2)
+                embed.description = f"You have sent {player2.mention if interaction.user == player1 else player1.mention} a rematch request!\nWaiting for their response ."
+                message = await player1.send(embed=embed) if player1 == interaction.user else await player2.send(embed=embed)
+                if player1 in self.typeracer_rematch and player2 not in self.typeracer_rematch: 
+                    embed.description = f"{player1.mention} requested for a rematch!\nWaiting for your response."
+                    await player2.send(embed=embed, view=view, delete_after=60)
+                if player2 in self.typeracer_rematch and player1 not in self.typeracer_rematch: 
+                    embed.description = f"{player2.mention} requested for a rematch!\nWaiting for your response."
+                    await player1.send(embed=embed, view=view, delete_after=60)
+                timer = 0
+                while player1 if player1 == interaction.user else player2 in self.typeracer_rematch:
+                    await asyncio.sleep(2)
+                    if (player1 if player1 == interaction.user else player2) not in self.typeracer_rematch:
+                        break
+                    embed.description = f"You have sent {player2.mention if interaction.user == player1 else player1.mention} a rematch request!\nWaiting for their response . ."
+                    await message.edit(embed=embed)
+                    await asyncio.sleep(2)
+                    if (player1 if player1 == interaction.user else player2) not in self.typeracer_rematch:
+                        break
+                    embed.description = f"You have sent {player2.mention if interaction.user == player1 else player1.mention} a rematch request!\nWaiting for their response . . ."
+                    await message.edit(embed=embed)
+                    await asyncio.sleep(2)
+                    if (player1 if player1 == interaction.user else player2) not in self.typeracer_rematch:
+                        break
+                    embed.description = f"You have sent {player2.mention if interaction.user == player1 else player1.mention} a rematch request!\nWaiting for their response ."
+                    await message.edit(embed=embed)
+                    timer += 6
+                    if timer == 60:
+                        embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} did not respond to your rematch request!"
+                        await message.edit(embed=embed)
+                if player1 in self.typeracer_games and player2 in self.typeracer_games:
+                    embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} has accepted your request for a rematch!"
+                    return await message.edit(embed=embed)
+                if player1 not in self.typeracer_rematch and player2 not in self.typeracer_rematch:
+                    embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} has declined your request for a rematch!"
+                    return await message.edit(embed=embed)
+
+        async def game_start():
+                self.typeracer_games.append(player1)
+                self.typeracer_games.append(player2)
+                embed = discord.Embed(title="Zen | Typing Race")
+                text = brown.words()
+                sentences = nltk.sent_tokenize(" ".join(text))
+                random_paragraph = ""
+                random_paragraph += str(random.choice(sentences))
+                while len(random_paragraph) < 250:
+                    random_paragraph += str(random.choice(sentences))
+                random_paragraph = Formatter.format_paragraph(random_paragraph)
+                display_paragraph = random_paragraph.replace(" ", "\u034F ")
+                words = random_paragraph.split()
+                embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
+                embed.add_field(name="Match Play", value=f"This is a typing contest between {player1.mention} and {player2.mention}.", inline=False)
+                player1_message = await player1.send(embed=embed)
+                player2_message = await player2.send(embed=embed)
+                await asyncio.sleep(10)
+                embed.set_field_at(1, name="Paragraph", value=f"```{display_paragraph}```", inline=False)
+                timer.start(embed=embed, message1=player1_message, message2=player2_message)
+                result_embed = discord.Embed(title="Zen | Typing Race")
+                wait_for_typeracer_player_1.start(embed=result_embed, player=player1, words=words, message=player1_message)
+                wait_for_typeracer_player_2.start(embed=result_embed, player=player2, words=words, message=player2_message)
+                while True:
+                    await asyncio.sleep(1)
+                    if wait_for_typeracer_player_1.is_running() and wait_for_typeracer_player_2.is_running() and not timer.is_running():
+                        message = Player.update_players(player1, player2, 0.5, matchtype)
+                        result_embed.add_field(name="Match Result", value=message, inline=False)
+                        await player1.send(embed=result_embed, view=view)
+                        await player2.send(embed=result_embed, view=view)
+                        break
+                    if wait_for_typeracer_player_2.is_running() and not timer.is_running():
+                        message = Player.update_players(player1, player2, 1, matchtype)
+                        result_embed.add_field(name="Match Result", value=message, inline=False)
+                        await player1.send(embed=result_embed, view=view)
+                        await player2.send(embed=result_embed, view=view)
+                        break
+                    if wait_for_typeracer_player_1.is_running() and not timer.is_running():
+                        message = Player.update_players(player2, player1, 1, matchtype)
+                        result_embed.add_field(name="Match Result", value=message, inline=False)
+                        await player2.send(embed=result_embed, view=view)
+                        await player1.send(embed=result_embed, view=view)
+                        break
+                    if not wait_for_typeracer_player_1.is_running() and not wait_for_typeracer_player_2.is_running():
+                        timer.cancel()
+                        string1 = result_embed.fields[0].value
+                        string2 = result_embed.fields[1].value
+                        player1_score = re.findall(r'\d+', string1)[3]
+                        player1_name = re.findall(r"^\w+", string1)[0]
+                        player2_score = re.findall(r'\d+', string2)[3]
+                        player2_name = re.findall(r"^\w+", string2)[0]
+                        player1_discord = player1 if player1_name == player1.display_name.capitalize() else player2
+                        player2_discord = player1 if player2_name == player1.display_name.capitalize() else player2
+                        if int(player1_score) < int(player2_score):
+                            message = Player.update_players(player1_discord, player2_discord, 1, matchtype)
+                            result_embed.add_field(name="Match Result", value=message, inline=False)
+                            await player1.send(embed=result_embed, view=view)
+                            await player2.send(embed=result_embed, view=view)
+                            break
+                        if int(player2_score) < int(player1_score):
+                            message = Player.update_players(player2_discord, player1_discord, 1, matchtype)
+                            result_embed.add_field(name="Match Result", value=message, inline=False)
+                            await player1.send(embed=result_embed, view=view)
+                            await player2.send(embed=result_embed, view=view)
+                            break
+                        if player1_score == player2_score:
+                            message = Player.update_players(player1_discord, player2_discord, 0.5, matchtype)
+                            result_embed.add_field(name="Match Result", value=message, inline=False)
+                            await player1.send(embed=result_embed, view=view)
+                            await player2.send(embed=result_embed, view=view)
+                            break
+                self.typeracer_games.remove(player1)
+                self.typeracer_games.remove(player2)
+
         await asyncio.sleep(2)
-        if len(self.in_typeracer_unrated_queue) >= 2:
+        if len(self.typeracer_unrated_queue) >= 2:
             matchtype = "unrated"
-        elif len(self.in_typeracer_rated_queue) >= 2:
+        elif len(self.typeracer_rated_queue) >= 2:
             matchtype = "rated"
         else:
             matchtype = None
         if matchtype != None:
             if matchtype == "unrated":
-                player1, player2 = self.in_typeracer_unrated_queue.pop(), self.in_typeracer_unrated_queue.pop()
+                player1, player2 = self.typeracer_unrated_queue.pop(), self.typeracer_unrated_queue.pop()
             if matchtype == "rated":
-                player1, player2 = self.in_typeracer_rated_queue.pop(), self.in_typeracer_rated_queue.pop()
-            self.in_typeracer_game_list.append(player1)
-            self.in_typeracer_game_list.append(player2)
-            embed = discord.Embed(title="Zen | Typing Race")
-            text = brown.words()
-            sentences = nltk.sent_tokenize(" ".join(text))
-            random_paragraph = ""
-            random_paragraph += str(random.choice(sentences))
-            while len(random_paragraph) < 250:
-                random_paragraph += str(random.choice(sentences))
-            random_paragraph = Formatter.format_paragraph(random_paragraph)
-            display_paragraph = random_paragraph.replace(" ", "\u034F ")
-            words = random_paragraph.split()
-            embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
-            embed.add_field(name="Match Play", value=f"This is a typing contest between {player1.mention} and {player2.mention}.", inline=False)
-            player1_message = await player1.send(embed=embed)
-            player2_message = await player2.send(embed=embed)
-            await asyncio.sleep(10)
-            embed.set_field_at(1, name="Paragraph", value=f"```{display_paragraph}```", inline=False)
-            timer.start(embed=embed, message1=player1_message, message2=player2_message)
-            result_embed = discord.Embed(title="Zen | Typing Race")
-            wait_for_typeracer_player_1.start(embed=result_embed, player=player1, words=words, message=player1_message)
-            wait_for_typeracer_player_2.start(embed=result_embed, player=player2, words=words, message=player2_message)
-            while True:
-                await asyncio.sleep(1)
-                if wait_for_typeracer_player_1.is_running() and wait_for_typeracer_player_2.is_running() and not timer.is_running():
-                    message = Player.update_players(player1, player2, 0.5, matchtype)
-                    result_embed.add_field(name="Match Result", value=message, inline=False)
-                    await player1.send(embed=result_embed)
-                    await player2.send(embed=result_embed)
-                    break
-                if wait_for_typeracer_player_2.is_running() and not timer.is_running():
-                    message = Player.update_players(player1, player2, 1, matchtype)
-                    result_embed.add_field(name="Match Result", value=message, inline=False)
-                    await player1.send(embed=result_embed)
-                    await player2.send(embed=result_embed)
-                    break
-                if wait_for_typeracer_player_1.is_running() and not timer.is_running():
-                    message = Player.update_players(player2, player1, 1, matchtype)
-                    result_embed.add_field(name="Match Result", value=message, inline=False)
-                    await player2.send(embed=result_embed)
-                    await player1.send(embed=result_embed)
-                    break
-                if not wait_for_typeracer_player_1.is_running() and not wait_for_typeracer_player_2.is_running():
-                    timer.cancel()
-                    string1 = result_embed.fields[0].value
-                    string2 = result_embed.fields[1].value
-                    player1_score = re.findall(r'\d+', string1)[3]
-                    player1_name = re.findall(r"^\w+", string1)[0]
-                    player2_score = re.findall(r'\d+', string2)[3]
-                    player2_name = re.findall(r"^\w+", string2)[0]
-                    player1_discord = player1 if player1_name == player1.display_name.capitalize() else player2
-                    player2_discord = player1 if player2_name == player1.display_name.capitalize() else player2
-                    if int(player1_score) < int(player2_score):
-                        message = Player.update_players(player1_discord, player2_discord, 1, matchtype)
-                        result_embed.add_field(name="Match Result", value=message, inline=False)
-                        await player1.send(embed=result_embed)
-                        await player2.send(embed=result_embed)
-                        break
-                    if int(player2_score) < int(player1_score):
-                        message = Player.update_players(player2_discord, player1_discord, 1, matchtype)
-                        result_embed.add_field(name="Match Result", value=message, inline=False)
-                        await player1.send(embed=result_embed)
-                        await player2.send(embed=result_embed)
-                        break
-                    if player1_score == player2_score:
-                        message = Player.update_players(player1_discord, player2_discord, 0.5, matchtype)
-                        result_embed.add_field(name="Match Result", value=message, inline=False)
-                        await player1.send(embed=result_embed)
-                        await player2.send(embed=result_embed)
-                        break
-            self.in_typeracer_game_list.remove(player1)
-            self.in_typeracer_game_list.remove(player2)
-        if len(self.in_typeracer_unrated_queue) == 0 and len(self.in_typeracer_rated_queue) == 0:
-            self.typeracer_matchmaking.stop()
+                player1, player2 = self.typeracer_rated_queue.pop(), self.typeracer_rated_queue.pop()
+            rematch_button = Button(label="Ask For Rematch", style=discord.ButtonStyle.primary)
+            rematch_button.callback = rematch_button_callback
+            view = View()
+            view.add_item(rematch_button)
+            await game_start()
+            if len(self.typeracer_unrated_queue) == 0 and len(self.typeracer_rated_queue) == 0:
+                self.typeracer_matchmaking.stop()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -462,17 +540,17 @@ class Games(commands.Cog, description="Games commands."):
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
             await interaction.response.defer()
-            if interaction.user not in self.in_typeracer_unrated_queue and interaction.user in self.in_typeracer_rated_queue:
-                self.in_typeracer_rated_queue.remove(interaction.user)
-            if interaction.user not in self.in_typeracer_unrated_queue and interaction.user not in self.in_typeracer_rated_queue:
-                self.in_typeracer_unrated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_unrated_queue and interaction.user in self.typeracer_rated_queue:
+                self.typeracer_rated_queue.remove(interaction.user)
+            if interaction.user not in self.typeracer_unrated_queue and interaction.user not in self.typeracer_rated_queue:
+                self.typeracer_unrated_queue.insert(0, interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -483,17 +561,17 @@ class Games(commands.Cog, description="Games commands."):
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
             await interaction.response.defer()
-            if interaction.user not in self.in_typeracer_rated_queue and interaction.user in self.in_typeracer_unrated_queue:
-                self.in_typeracer_unrated_queue.remove(interaction.user)
-            if interaction.user not in self.in_typeracer_rated_queue and interaction.user not in self.in_typeracer_unrated_queue:
-                self.in_typeracer_rated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_rated_queue and interaction.user in self.typeracer_unrated_queue:
+                self.typeracer_unrated_queue.remove(interaction.user)
+            if interaction.user not in self.typeracer_rated_queue and interaction.user not in self.typeracer_unrated_queue:
+                self.typeracer_rated_queue.insert(0, interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -502,18 +580,18 @@ class Games(commands.Cog, description="Games commands."):
 
         async def leave_queue_button_callback(interaction: discord.Interaction):
             await interaction.response.defer()
-            if interaction.user in self.in_typeracer_unrated_queue:
-                self.in_typeracer_unrated_queue.remove(interaction.user)
-            if interaction.user in self.in_typeracer_rated_queue:
-                self.in_typeracer_rated_queue.remove(interaction.user)
-            self.in_typeracer_cancel_list.append(interaction.user)
+            if interaction.user in self.typeracer_unrated_queue:
+                self.typeracer_unrated_queue.remove(interaction.user)
+            if interaction.user in self.typeracer_rated_queue:
+                self.typeracer_rated_queue.remove(interaction.user)
+            self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -523,11 +601,11 @@ class Games(commands.Cog, description="Games commands."):
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race Queue"
         unrated_queue = ""
-        for player in self.in_typeracer_unrated_queue:
+        for player in self.typeracer_unrated_queue:
             rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
             unrated_queue += f"{player.mention} - **{rating}**\n"
         rated_queue = ""
-        for player in self.in_typeracer_rated_queue:
+        for player in self.typeracer_rated_queue:
             rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
             rated_queue += f"{player.mention} - **{rating}**\n"
         embed.add_field(name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -548,11 +626,11 @@ class Games(commands.Cog, description="Games commands."):
             if timer == 300:
                 return await message.delete()
             unrated_queue = ""
-            for player in self.in_typeracer_unrated_queue:
+            for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 unrated_queue += f"{player.mention} - **{rating}**\n"
             rated_queue = ""
-            for player in self.in_typeracer_rated_queue:
+            for player in self.typeracer_rated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
                 rated_queue += f"{player.mention} - **{rating}**\n"
             embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
@@ -567,19 +645,23 @@ class Games(commands.Cog, description="Games commands."):
             if interaction.user != ctx.author:
                 return await interaction.response.defer()
             await interaction.response.defer()
-            self.in_typeracer_cancel_list.append(ctx.author)
-            if ctx.author in self.in_typeracer_unrated_queue:
-                self.in_typeracer_unrated_queue.remove(ctx.author)
-            if ctx.author in self.in_typeracer_rated_queue:
-                self.in_typeracer_rated_queue.remove(ctx.author)
+            self.typeracer_cancel_list.append(ctx.author)
+            if ctx.author in self.typeracer_unrated_queue:
+                self.typeracer_unrated_queue.remove(ctx.author)
+            if ctx.author in self.typeracer_rated_queue:
+                self.typeracer_rated_queue.remove(ctx.author)
 
-        if ctx.author in self.in_typeracer_cancel_list:
-            self.in_typeracer_cancel_list.remove(ctx.author)
+        if ctx.author in self.typeracer_cancel_list:
+            self.typeracer_cancel_list.remove(ctx.author)
         embed = self.games_embed(ctx)
-        if ctx.author in self.in_typeracer_game_list:
+        cancel_button = Button(label="Cancel Search", style=discord.ButtonStyle.red)
+        cancel_button.callback = cancel_button_callback
+        view = View()
+        view.add_item(cancel_button)
+        if ctx.author in self.typeracer_games:
             embed.description = "You are already in an ongoing typeracer match!"
             return await ctx.send(embed=embed)
-        if ctx.author in self.in_typeracer_unrated_queue or ctx.author in self.in_typeracer_rated_queue:
+        if ctx.author in self.typeracer_unrated_queue or ctx.author in self.typeracer_rated_queue:
             embed.title = "Zen | Typing Race"
             embed.description = "You are already in a queue."
             return await ctx.send(embed=embed)
@@ -590,82 +672,74 @@ class Games(commands.Cog, description="Games commands."):
             await ctx.send(embed=embed)
         if matchtype in ["unrated", "unranked"]:
             embed.title = "Zen | Typing Race (Unrated)"
-            self.in_typeracer_unrated_queue.insert(0, ctx.author)
-            embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.in_typeracer_unrated_queue)} in queue."
-            cancel_button = Button(label="Cancel Search", style=discord.ButtonStyle.red)
-            cancel_button.callback = cancel_button_callback
-            view = View()
-            view.add_item(cancel_button)
+            self.typeracer_unrated_queue.insert(0, ctx.author)
+            embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.typeracer_unrated_queue)} in queue."
             message = await ctx.send(embed=embed, view=view)
             timer = 0
-            while ctx.author in self.in_typeracer_unrated_queue:
+            while ctx.author in self.typeracer_unrated_queue:
                 await asyncio.sleep(2)
-                embed.description = f"{ctx.author.mention} is searching for an opponent . .\n{len(self.in_typeracer_unrated_queue)} in queue."
-                if ctx.author not in self.in_typeracer_unrated_queue:
+                embed.description = f"{ctx.author.mention} is searching for an opponent . .\n{len(self.typeracer_unrated_queue)} in queue."
+                if ctx.author not in self.typeracer_unrated_queue:
                     break
                 await message.edit(embed=embed)
                 await asyncio.sleep(2)
-                embed.description = f"{ctx.author.mention} is searching for an opponent . . .\n{len(self.in_typeracer_unrated_queue)} in queue."
-                if ctx.author not in self.in_typeracer_unrated_queue:
+                embed.description = f"{ctx.author.mention} is searching for an opponent . . .\n{len(self.typeracer_unrated_queue)} in queue."
+                if ctx.author not in self.typeracer_unrated_queue:
                     break
                 await message.edit(embed=embed)
-                embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.in_typeracer_unrated_queue)} in queue."
+                embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.typeracer_unrated_queue)} in queue."
                 await asyncio.sleep(2)
-                if ctx.author not in self.in_typeracer_unrated_queue:
+                if ctx.author not in self.typeracer_unrated_queue:
                     break
                 await message.edit(embed=embed)
                 timer += 6
                 if timer > 120:
                     embed.description = "It's been two minutes, it looks like no one is playing right now. Queue up again later!"
-                    if ctx.author in self.in_typeracer_unrated_queue:
-                        self.in_typeracer_unrated_queue.remove(ctx.author)
+                    if ctx.author in self.typeracer_unrated_queue:
+                        self.typeracer_unrated_queue.remove(ctx.author)
                     return await message.edit(embed=embed, view=None, delete_after=30)
-            if ctx.author not in self.in_typeracer_cancel_list:
+            if ctx.author not in self.typeracer_cancel_list:
                 embed.description = f"{ctx.author.mention} found a game!"
                 return await message.edit(embed=embed, view=None, delete_after=30)
             if message:
                 await message.delete()
-            self.in_typeracer_cancel_list.remove(ctx.author)
+            self.typeracer_cancel_list.remove(ctx.author)
             embed.description = f"{ctx.author.mention}, your search has been cancelled!"
             await ctx.send(embed=embed, delete_after=15)
         if matchtype in ["rated", "ranked"]:
             embed.title = "Zen | Typing Race (Rated)"
-            self.in_typeracer_rated_queue.insert(0, ctx.author)
-            embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.in_typeracer_rated_queue)} in queue."
-            cancel_button = Button(label="Cancel Search", style=discord.ButtonStyle.red)
-            cancel_button.callback = cancel_button_callback
-            view = View()
-            view.add_item(cancel_button)
+            self.typeracer_rated_queue.insert(0, ctx.author)
+            embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.typeracer_rated_queue)} in queue."
             message = await ctx.send(embed=embed, view=view)
             timer = 0
-            while ctx.author in self.in_typeracer_rated_queue:
+            while ctx.author in self.typeracer_rated_queue:
                 await asyncio.sleep(2)
-                embed.description = f"{ctx.author.mention} is searching for an opponent . .\n{len(self.in_typeracer_rated_queue)} in queue."
-                if ctx.author not in self.in_typeracer_rated_queue:
+                embed.description = f"{ctx.author.mention} is searching for an opponent . .\n{len(self.typeracer_rated_queue)} in queue."
+                if ctx.author not in self.typeracer_rated_queue:
                     break
                 await message.edit(embed=embed)
                 await asyncio.sleep(2)
-                embed.description = f"{ctx.author.mention} is searching for an opponent . . .\n{len(self.in_typeracer_rated_queue)} in queue."
-                if ctx.author not in self.in_typeracer_rated_queue:
+                embed.description = f"{ctx.author.mention} is searching for an opponent . . .\n{len(self.typeracer_rated_queue)} in queue."
+                if ctx.author not in self.typeracer_rated_queue:
                     break
                 await message.edit(embed=embed)
-                embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.in_typeracer_rated_queue)} in queue."
+                embed.description = f"{ctx.author.mention} is searching for an opponent .\n{len(self.typeracer_rated_queue)} in queue."
                 await asyncio.sleep(2)
-                if ctx.author not in self.in_typeracer_rated_queue:
+                if ctx.author not in self.typeracer_rated_queue:
                     break
                 await message.edit(embed=embed)
                 timer += 6
                 if timer > 120:
                     embed.description = "It's been two minutes, it looks like no one is playing right now. Queue up again later!"
-                    if ctx.author in self.in_typeracer_rated_queue:
-                        self.in_typeracer_rated_queue.remove(ctx.author)
+                    if ctx.author in self.typeracer_rated_queue:
+                        self.typeracer_rated_queue.remove(ctx.author)
                     return await message.edit(embed=embed, view=None, delete_after=30)
-            if ctx.author not in self.in_typeracer_cancel_list:
+            if ctx.author not in self.typeracer_cancel_list:
                 embed.description = f"{ctx.author.mention} found a game!"
                 return await message.edit(embed=embed, view=None, delete_after=30)
             if message:
                 await message.delete()
-            self.in_typeracer_cancel_list.remove(ctx.author)
+            self.typeracer_cancel_list.remove(ctx.author)
             embed.description = f"{ctx.author.mention}, your search has been cancelled!"
             await ctx.send(embed=embed, delete_after=15)
 
@@ -687,7 +761,7 @@ class Games(commands.Cog, description="Games commands."):
                 await message.edit(embed=embed)
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race"
-        if ctx.author in self.in_typeracer_game_list:
+        if ctx.author in self.typeracer_games:
             embed.description = "You are already in an ongoing typeracer match!"
             return await ctx.send(embed=embed)
         text = brown.words()
@@ -699,7 +773,7 @@ class Games(commands.Cog, description="Games commands."):
         random_paragraph = Formatter.format_paragraph(random_paragraph)
         display_paragraph = random_paragraph.replace(" ", "\u034F ")
         words = random_paragraph.split()
-        self.in_typeracer_game_list.append(ctx.author)
+        self.typeracer_games.append(ctx.author)
         embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
         embed.add_field(name="Solo Play", value="Your practicing your typing skills alone ;-;", inline=False)
         message = await ctx.send(embed=embed)
@@ -710,7 +784,7 @@ class Games(commands.Cog, description="Games commands."):
             response: discord.Message = await self.client.wait_for("message", check=lambda m: m.author == ctx.author and m.channel == ctx.channel, timeout=120)
         except asyncio.TimeoutError:
             pass
-        self.in_typeracer_game_list.remove(ctx.author)
+        self.typeracer_games.remove(ctx.author)
         author_words = response.content.split()
         await response.delete()
         typo_count = 0
@@ -888,10 +962,10 @@ class Games(commands.Cog, description="Games commands."):
         if member == ctx.author:
             embed.description = "You can't challenge yourself!"
             return await ctx.send(embed=embed)
-        if ctx.author in self.in_typeracer_game_list:
+        if ctx.author in self.typeracer_games:
             embed.description = "You are already in an ongoing typeracer match!"
             return await ctx.send(embed=embed)
-        if member in self.in_typeracer_game_list:
+        if member in self.typeracer_games:
             embed.description = f"{member.mention} is already in an ongoing typeracer match!"
             return await ctx.send(embed=embed)
         if matchtype.lower() not in ["unrated", "unranked", "rated", "ranked"]:
@@ -938,8 +1012,8 @@ class Games(commands.Cog, description="Games commands."):
             self.typeracer_challenges[ctx.author].pop()
             return await ctx.send(embed=embed)
         self.typeracer_challenges.pop(ctx.author)
-        self.in_typeracer_game_list.append(ctx.author)
-        self.in_typeracer_game_list.append(member)
+        self.typeracer_games.append(ctx.author)
+        self.typeracer_games.append(member)
         embed.add_field(name="Rules", value="You have 2 minutes to type the entire paragraph. Write the entire paragraph in 1 message and only send it when you're done. Typos will add extra to your final time.\n\nThe match will start in 10 seconds!", inline=False)
         embed.add_field(name="Match Play", value=f"This is a typing contest between {ctx.author.mention} and {member.mention}.", inline=False)
         message = await ctx.send(embed=embed)
@@ -991,8 +1065,8 @@ class Games(commands.Cog, description="Games commands."):
                     result_embed.add_field(name="Match Result", value=message, inline=False)
                     await ctx.send(embed=result_embed)
                     break
-        self.in_typeracer_game_list.remove(ctx.author)
-        self.in_typeracer_game_list.remove(member)
+        self.typeracer_games.remove(ctx.author)
+        self.typeracer_games.remove(member)
 
     @commands.command()
     async def battleshiptop(self, ctx: commands.Context):
