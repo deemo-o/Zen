@@ -257,21 +257,67 @@ class Games(commands.Cog, description="Games commands."):
             embed.description += f"{index + 1}. <@{member[1]}> - **{round(member[3])} ELO**\n"
         await ctx.send(embed=embed)
 
+    @commands.command(aliases=["trprofile"])
+    async def typeracerprofile(self, ctx: commands.Context, member: discord.Member = None):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | Typeracer Profile"
+        if member is None:
+            if typeracer_dboperations.get_rating(self.connection, ctx.author.id) != "Nope":
+                member_data = typeracer_dboperations.get_rating(self.connection, ctx.author.id)[0]
+                embed.set_thumbnail(url=ctx.author.avatar)
+                embed.add_field(name="Player Name", value=f"**{member_data[2]}**", inline=False)
+                embed.add_field(name="Rating", value=f"**{round(member_data[3])} ELO**", inline=False)
+                embed.add_field(name="Matches Played / Winrate", value=f"**{member_data[6]} / {round((member_data[7] / member_data[6]) * 100)}%**", inline=False)
+                embed.add_field(name="Matches Won / Drawn / Lost", value=f"**{member_data[7]} / {member_data[9]} / {member_data[8]}**", inline=False)
+                embed.add_field(name="Last Match", value=f"**{member_data[10]}**", inline=False)
+                return await ctx.send(embed=embed)
+            embed.description = f"{ctx.author.mention} never played typeracer!"
+            return await ctx.send(embed=embed)
+        else:
+            if typeracer_dboperations.get_rating(self.connection, member.id) != "Nope":
+                member_data = typeracer_dboperations.get_rating(self.connection, member.id)[0]
+                embed.set_thumbnail(url=member.avatar)
+                embed.add_field(name="Player Name", value=f"**{member_data[2]}**", inline=False)
+                embed.add_field(name="Rating", value=f"**{round(member_data[3])} ELO**", inline=False)
+                embed.add_field(name="Matches Played / Winrate", value=f"**{member_data[6]} / {round((member_data[7] / member_data[6]) * 100)}%**", inline=False)
+                embed.add_field(name="Matches Won / Drawn / Lost", value=f"**{member_data[7]} / {member_data[9]} / {member_data[8]}**", inline=False)
+                embed.add_field(name="Last Match", value=f"**{member_data[10]}**", inline=False)
+                return await ctx.send(embed=embed)
+            embed.description = f"{member.mention} never played typeracer!"
+            return await ctx.send(embed=embed)
+
     @commands.command(brief="Lets you search for a typeracer match")
     async def typeracer(self, ctx: commands.Context, matchtype: str = "unrated"):
+        embed = self.games_embed(ctx)
+        if ctx.author in self.in_typeracer_unrated_queue or ctx.author in self.in_typeracer_rated_queue:
+            if matchtype.lower() == "cancel":
+                self.in_typeracer_unrated_queue.remove(ctx.author)
+                self.in_typeracer_rated_queue.remove(ctx.author)
+                embed.description = "Cancelled search."
+                return await ctx.send(embed=embed)
+            embed.title = "Zen | Typing Race"
+            embed.description = "You are already in a queue."
+            return await ctx.send(embed=embed)
         if not self.matchmaking.is_running():
             self.matchmaking.start()
-        embed = self.games_embed(ctx)
         if matchtype not in ["unrated", "unranked", "rated", "ranked"]:
             embed.description = "Please choose a valid type of match!\n- **Rated/Ranked**\n- **Unrated/Unranked**"
             await ctx.send(embed=embed)
         if matchtype in ["unrated", "unranked"]:
             embed.title = "Zen | Typing Race (Unrated)"
             self.in_typeracer_unrated_queue.append(ctx.author)
-            embed.description = f"{ctx.author.mention} is searching for an opponent..."
+            embed.description = f"{ctx.author.mention} is searching for an opponent."
             message = await ctx.send(embed=embed)
             while ctx.author in self.in_typeracer_unrated_queue:
-                await asyncio.sleep(5)
+                await asyncio.sleep(1)
+                embed.description = f"{ctx.author.mention} is searching for an opponent.."
+                message.edit(embed=embed)
+                await asyncio.sleep(1)
+                embed.description = f"{ctx.author.mention} is searching for an opponent..."
+                message.edit(embed=embed)
+                await asyncio.sleep(1)
+                embed.description = f"{ctx.author.mention} is searching for an opponent..."
+                message.edit(embed=embed)
             embed.description = f"{ctx.author.mention} found a game!"
             await message.edit(embed=embed, delete_after=30)
         if matchtype in ["rated", "ranked"]:
@@ -280,7 +326,15 @@ class Games(commands.Cog, description="Games commands."):
             embed.description = f"{ctx.author.mention} is searching for an opponent..."
             message = await ctx.send(embed=embed)
             while ctx.author in self.in_typeracer_rated_queue:
-                await asyncio.sleep(5)
+                await asyncio.sleep(1)
+                embed.description = f"{ctx.author.mention} is searching for an opponent.."
+                message.edit(embed=embed)
+                await asyncio.sleep(1)
+                embed.description = f"{ctx.author.mention} is searching for an opponent..."
+                message.edit(embed=embed)
+                await asyncio.sleep(1)
+                embed.description = f"{ctx.author.mention} is searching for an opponent..."
+                message.edit(embed=embed)
             embed.description = f"{ctx.author.mention} found a game!"
             await message.edit(embed=embed, delete_after=30)
 

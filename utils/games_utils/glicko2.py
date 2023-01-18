@@ -22,10 +22,13 @@ class Player:
         self.RD = typeracer_dboperations.get_rating(self.connection, user.id)[0][4] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else Player.default_RD
         self.vol = typeracer_dboperations.get_rating(self.connection, user.id)[0][5] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else Player.default_vol
         self.matchcount = typeracer_dboperations.get_rating(self.connection, user.id)[0][6] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else 0
-        self.lastmatch = typeracer_dboperations.get_rating(self.connection, user.id)[0][7] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else datetime.now().strftime("%Y-%m-%d %X")
+        self.wins = typeracer_dboperations.get_rating(self.connection, user.id)[0][7] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else 0
+        self.losses = typeracer_dboperations.get_rating(self.connection, user.id)[0][8] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else 0
+        self.draws = typeracer_dboperations.get_rating(self.connection, user.id)[0][9] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else 0
+        self.lastmatch = typeracer_dboperations.get_rating(self.connection, user.id)[0][10] if typeracer_dboperations.get_rating(self.connection, user.id) != "Nope" else datetime.now().strftime("%Y-%m-%d %X")
         #If player isn't in database, add them to the database
         if typeracer_dboperations.get_rating(self.connection, user.id) == "Nope":
-            typeracer_dboperations.insert_rating(self.connection, self.userid, self.name, self.rating, self.RD, self.vol, self.matchcount, self.lastmatch)
+            typeracer_dboperations.insert_rating(self.connection, self.userid, self.name, self.rating, self.RD, self.vol, self.matchcount, self.wins, self.losses, self.draws, self.lastmatch)
 
     #Updates both players' ratings in the database and return a message based on the result
     def update_players(member1, member2, result, matchtype) -> str:
@@ -47,8 +50,8 @@ class Player:
             player1.update_rating([player2_current_rating], [player2_current_RD], [result])
             player2.update_rating([player1_current_rating], [player1_current_RD], [1 - result])
             player1_new_rating, player2_new_rating = player1.rating, player2.rating
-            typeracer_dboperations.update_rating(player1.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.lastmatch, player1.userid)
-            typeracer_dboperations.update_rating(player2.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.lastmatch, player2.userid)
+            typeracer_dboperations.update_rating(player1.connection, player1.rating, player1.RD, player1.vol, player1.matchcount, player1.wins, player1.losses, player1.draws, player1.lastmatch, player1.userid)
+            typeracer_dboperations.update_rating(player2.connection, player2.rating, player2.RD, player2.vol, player2.matchcount, player2.wins, player2.losses, player2.draws, player2.lastmatch, player2.userid)
             if result == 1:
                 result_message = f"{member1.mention} wins the match!\n\
                                 {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** (+{round(player1_new_rating) - round(player1_current_rating)})\n\
@@ -58,9 +61,11 @@ class Player:
                                 {member2.display_name}'s rating change: **{round(player2_current_rating)} -> {round(player2_new_rating)}** (+{round(player2_new_rating) - round(player2_current_rating)})\n\
                                 {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** ({round(player1_new_rating) - round(player1_current_rating)})"
             if result == 0.5:
+                sign1 = "+" if player1_new_rating - player1_current_rating > 0 else "-"
+                sign2 = "+" if player2_new_rating - player2_current_rating > 0 else "-"
                 result_message = f"The match is a tie!\n\
-                                {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** (+{round(player1_new_rating) - round(player1_current_rating)})\n\
-                                {member2.display_name}'s rating change: **{round(player2_current_rating)} -> {round(player2_new_rating)}** ({round(player2_new_rating) - round(player2_current_rating)})"
+                                {member1.display_name}'s rating change: **{round(player1_current_rating)} -> {round(player1_new_rating)}** ({sign1}{abs(round(player1_new_rating) - round(player1_current_rating))})\n\
+                                {member2.display_name}'s rating change: **{round(player2_current_rating)} -> {round(player2_new_rating)}** ({sign2}{abs(round(player2_new_rating) - round(player2_current_rating))})"
             return result_message
 
     def update_rating(self, rating_list, RD_list, result_list):
@@ -96,9 +101,12 @@ class Player:
         #Convert rating and RD back to original scale
         self.rating = (self.rating * 173.7178) + 1500
         self.RD = self.RD * 173.7178
-        #Update the player's match count
+        #Update the player's match count, wins, losses, draws and last match
         self.matchcount += len(rating_list)
-        #Update the player's last match date
+        for x in range(len(result_list)):
+            self.wins += 1 if result_list[x] == 1 else 0
+            self.losses += 1 if result_list[x] == 0 else 0
+            self.draws += 1 if result_list[x] == 0.5 else 0
         self.lastmatch = datetime.now().strftime("%Y-%m-%d %X")
 
     #Computes v
