@@ -106,6 +106,7 @@ class Games(commands.Cog, description="Games commands."):
         
         channels_data = typeracer_dboperations.get_all_queue_announcementchannels(self.connection)
         channels = []
+        messages = []
         for channel in channels_data:
             channel = await self.client.fetch_channel(channel[1])
             channels.append(channel)
@@ -133,23 +134,28 @@ class Games(commands.Cog, description="Games commands."):
         view.add_item(leave_queue_button)
         for channel in channels:
             message = await channel.send(embed=embed, view=view)
-            timer = 0
-            while True:
-                if timer == 300:
-                    return await message.delete()
-                unrated_queue = ""
-                for player in self.in_typeracer_unrated_queue:
-                    rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
-                    unrated_queue += f"{player.mention} - **{rating}**\n"
-                rated_queue = ""
-                for player in self.in_typeracer_rated_queue:
-                    rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
-                    rated_queue += f"{player.mention} - **{rating}**\n"
-                embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
-                embed.set_field_at(1, name="Current Rated Queue", value=rated_queue, inline=True)
+            messages.append(message)
+        timer = 0
+        print(messages)
+        while True:
+            if timer == 300:
+                for message in messages:
+                    await message.delete()
+                return
+            unrated_queue = ""
+            for player in self.in_typeracer_unrated_queue:
+                rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
+                unrated_queue += f"{player.mention} - **{rating}**\n"
+            rated_queue = ""
+            for player in self.in_typeracer_rated_queue:
+                rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
+                rated_queue += f"{player.mention} - **{rating}**\n"
+            embed.set_field_at(0, name="Current Unrated Queue", value=unrated_queue, inline=True)
+            embed.set_field_at(1, name="Current Rated Queue", value=rated_queue, inline=True)
+            for message in messages:
                 await message.edit(embed=embed)
-                await asyncio.sleep(5)
-                timer += 5
+            await asyncio.sleep(5)
+            timer += 5
 
     @tasks.loop(seconds=5)
     async def typeracer_matchmaking(self):
