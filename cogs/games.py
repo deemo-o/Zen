@@ -137,7 +137,6 @@ class Games(commands.Cog, description="Games commands."):
             message = await channel.send(embed=embed, view=view)
             messages.append(message)
         timer = 0
-        print(messages)
         while True:
             if timer == 300:
                 for message in messages:
@@ -434,7 +433,22 @@ class Games(commands.Cog, description="Games commands."):
             if matchtype == "unrated":
                 player1, player2 = self.typeracer_unrated_queue.pop(), self.typeracer_unrated_queue.pop()
             if matchtype == "rated":
-                player1, player2 = self.typeracer_rated_queue.pop(), self.typeracer_rated_queue.pop()
+                player1, player2 = self.typeracer_rated_queue[-1], self.typeracer_rated_queue[-2]
+                player1_rating = round(typeracer_dboperations.get_rating(self.connection, player1.id)[0][3]) if typeracer_dboperations.get_rating(self.connection, player1.id) != "Nope" else 1500
+                player2_rating = round(typeracer_dboperations.get_rating(self.connection, player2.id)[0][3]) if typeracer_dboperations.get_rating(self.connection, player2.id) != "Nope" else 1500
+                counter = 0
+                rating_range = 100
+                while abs(player1_rating - player2_rating) > rating_range:
+                    random.shuffle(self.typeracer_rated_queue)
+                    player1, player2 = self.typeracer_rated_queue[-1], self.typeracer_rated_queue[-2]
+                    player1_rating = round(typeracer_dboperations.get_rating(self.connection, player1.id)[0][3]) if typeracer_dboperations.get_rating(self.connection, player1.id) != "Nope" else 1500
+                    player2_rating = round(typeracer_dboperations.get_rating(self.connection, player2.id)[0][3]) if typeracer_dboperations.get_rating(self.connection, player2.id) != "Nope" else 1500
+                    await asyncio.sleep(1)
+                    counter += 1
+                    if counter % 15 == 0:
+                        rating_range += 50
+                self.typeracer_rated_queue.remove(player1)
+                self.typeracer_rated_queue.remove(player2)
             rematch_button = Button(label="Ask For Rematch", style=discord.ButtonStyle.primary)
             rematch_button.callback = rematch_button_callback
             view = View()
@@ -460,7 +474,9 @@ class Games(commands.Cog, description="Games commands."):
         channels_data = typeracer_dboperations.get_all_queue_announcementchannels(self.connection)
         channels = []
         for channel in channels_data:
-            channels.append(await self.client.fetch_channel(channel[1]))
+            channel = await self.client.fetch_channel(channel[1])
+            if channel in ctx.guild.channels:
+                channels.append(channel)
         embed.description = ""
         for index, channel in enumerate(channels):
             embed.description += f"{index + 1} - {channel.mention}\n"
@@ -713,6 +729,9 @@ class Games(commands.Cog, description="Games commands."):
             message = await ctx.send(embed=embed, view=view)
             timer = 0
             while ctx.author in self.typeracer_rated_queue:
+                if timer % 30 == 0 and timer != 0:
+                    embed.description += "\n\nIncreased rating interval for search."
+                    await message.edit(embed=embed)
                 await asyncio.sleep(2)
                 embed.description = f"{ctx.author.mention} is searching for an opponent . .\n{len(self.typeracer_rated_queue)} in queue."
                 if ctx.author not in self.typeracer_rated_queue:
