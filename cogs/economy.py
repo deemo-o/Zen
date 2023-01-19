@@ -128,7 +128,6 @@ class Economy(commands.Cog, description="Economy commands."):
     @commands.command(aliases=["tgc", "togglegc"], brief="Subscribes or unsubscribes the current channel to the list of gift channels.", description="This command will subscribe or unsubscribe the current channel to the list of gift channels.")
     async def togglegiftchannel(self, ctx: commands.Context):
         giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
-        print(giftchannels)
         giftchannels_id_list = []
         for channel in giftchannels:
             giftchannels_id_list.append(channel[1])
@@ -147,7 +146,6 @@ class Economy(commands.Cog, description="Economy commands."):
         embed = self.economy_embed(ctx)
         embed.title = "Zen | Gift Channels"
         giftchannels = economy_dboperations.get_all_giftchannels(self.connection, ctx.guild.id)
-        print(giftchannels)
         channels = []
         for channel in giftchannels:
             channels.append(await self.client.fetch_channel(channel[1]))
@@ -371,7 +369,6 @@ class Economy(commands.Cog, description="Economy commands."):
         ranks_list = []
         for p in ranks:
             ranks_list.append(p[5])
-        print(ranks_list)
         if position not in ranks_list:
             embed.description = "The rank you're trying to delete doesn't exist."
             return await ctx.send(embed=embed)

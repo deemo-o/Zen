@@ -46,19 +46,14 @@ class Moderation(commands.Cog, description="Moderation commands."):
         if channel_id == 1053501652226813982:
             if str(emoji) == "💚":
                 await member.add_roles(study_role)
-                print(f"{member} has added the Study role.")
             if str(emoji) == "💛":
                 await member.add_roles(movie_role)
-                print(f"{member} has added the Movie role.")
             if str(emoji) == "💙":
                 await member.add_roles(game_role)
-                print(f"{member} has added the Game role.")
             if str(emoji) == "💜":
                 await member.add_roles(vibe_role)
-                print(f"{member} has added the Vibe role.")
             if str(emoji) == "🤎":
                 await member.add_roles(karaoke_role)
-                print(f"{member} has added the Karaoke role.")
 
         if channel_id == self.poll_channel.id:
             if str(payload.emoji) == "👍":
@@ -80,19 +75,14 @@ class Moderation(commands.Cog, description="Moderation commands."):
         if channel_id == 1053501652226813982:
             if str(emoji) == "💚":
                 await member.remove_roles(study_role)
-                print(f"{member} has removed the Study role.")
             if str(emoji) == "💛":
                 await member.remove_roles(movie_role)
-                print(f"{member} has removed the Movie role.")
             if str(emoji) == "💙":
                 await member.remove_roles(game_role)
-                print(f"{member} has removed the Game role.")
             if str(emoji) == "💜":
                 await member.remove_roles(vibe_role)
-                print(f"{member} has removed the Vibe role.")
             if str(emoji) == "🤎":
                 await member.remove_roles(karaoke_role)
-                print(f"{member} has removed the Karaoke role.")
 
         if channel_id == self.poll_channel.id:
             if str(payload.emoji) == "👍":

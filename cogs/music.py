@@ -48,14 +48,11 @@ class Player(wavelink.Player):
                     await self.context.send(embed=discord.Embed(description="The queue is empty! Zen will be leaving in 5 minutes unless you add more songs.", color=self.context.author.top_role.color), delete_after=305)
                 if self.loop == "CURRENT":
                     track = self.looped_track
-                    print(f"Looped track: {track.title}")
                 elif self.loop == "QUEUE":
                     await self.queue.put(self.looped_track)
                     track = await self.queue.get()
-                    print(f"Next track Queue: {track.title}")
                 else:
                     track = await self.queue.get()
-                    print(f"Next track Solo: {track.title}")
         except asyncio.TimeoutError:
             return await self.teardown()
         await self.play(track)
@@ -78,8 +75,6 @@ class Player(wavelink.Player):
             await self.context.send(embed=discord.Embed(description="There must be at least 2 songs in the queue if you want to loop the queue!"))
 
         self.loop = loop_type.upper()
-
-        print(f"Loop: {self.loop}")
         return self.loop
 
     def build_embed(self, **kwargs) -> typing.Optional[discord.Embed]:
@@ -199,7 +194,6 @@ class Music(commands.Cog, description="Music commands."):
                 index = re.search("([^=]+$)", query)
                 track: Union[Track, YouTubeTrack] = tracks.tracks[int(index.group()) - 1]
                 track.requester = ctx.author
-                print(track.title)
                 await player.queue.put(track)
                 embed.description = f"Added `{track.title}` to the queue."
 
@@ -239,7 +233,7 @@ class Music(commands.Cog, description="Music commands."):
 
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, player: Player, track: Union[Track, YouTubeTrack]):
-        print(f"Now Playing: {track.title}")
+        print(f"'{player.guild.name}' is now playing: {track.title}")
 
     @commands.Cog.listener()
     async def on_wavelink_track_end(self, player: Player, track: YouTubeTrack, reason):
