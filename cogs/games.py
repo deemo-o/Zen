@@ -54,6 +54,8 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_rated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_unrated_queue and interaction.user not in self.typeracer_rated_queue:
                 self.typeracer_unrated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
@@ -77,6 +79,8 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_unrated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_rated_queue and interaction.user not in self.typeracer_unrated_queue:
                 self.typeracer_rated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
@@ -585,6 +589,8 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_rated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_unrated_queue and interaction.user not in self.typeracer_rated_queue:
                 self.typeracer_unrated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
@@ -608,6 +614,8 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_unrated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_rated_queue and interaction.user not in self.typeracer_unrated_queue:
                 self.typeracer_rated_queue.insert(0, interaction.user)
+            if interaction.user not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
