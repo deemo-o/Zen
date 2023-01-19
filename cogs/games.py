@@ -27,6 +27,7 @@ class Games(commands.Cog, description="Games commands."):
         self.typeracer_challenges = defaultdict(list)
         self.connection = battleship_dboperations.connection()
         self.rps_connection = rps_dboperations.connection()
+        self.sentences = nltk.sent_tokenize(" ".join(brown.words()))
 
     def games_embed(self, ctx: commands.Context) -> discord.Embed:
         embed = discord.Embed(title="Zen | Games", color=ctx.author.color)
@@ -359,12 +360,10 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_games.append(player1)
                 self.typeracer_games.append(player2)
                 embed = discord.Embed(title="Zen | Typing Race")
-                text = brown.words()
-                sentences = nltk.sent_tokenize(" ".join(text))
                 random_paragraph = ""
-                random_paragraph += str(random.choice(sentences))
+                random_paragraph += str(random.choice(self.sentences))
                 while len(random_paragraph) < 250:
-                    random_paragraph += str(random.choice(sentences))
+                    random_paragraph += str(random.choice(self.sentences))
                 random_paragraph = Formatter.format_paragraph(random_paragraph)
                 display_paragraph = random_paragraph.replace(" ", "\u034F ")
                 words = random_paragraph.split()
@@ -799,12 +798,10 @@ class Games(commands.Cog, description="Games commands."):
         if ctx.author in self.typeracer_games:
             embed.description = "You are already in an ongoing typeracer match!"
             return await ctx.send(embed=embed)
-        text = brown.words()
-        sentences = nltk.sent_tokenize(" ".join(text))
         random_paragraph = ""
-        random_paragraph += str(random.choice(sentences))
+        random_paragraph += str(random.choice(self.sentences))
         while len(random_paragraph) < 250:
-            random_paragraph += str(random.choice(sentences))
+            random_paragraph += str(random.choice(self.sentences))
         random_paragraph = Formatter.format_paragraph(random_paragraph)
         display_paragraph = random_paragraph.replace(" ", "\u034F ")
         words = random_paragraph.split()
@@ -1007,12 +1004,10 @@ class Games(commands.Cog, description="Games commands."):
             embed.description = "Please choose a valid type of match!\n- **Rated**\n- **Unrated**"
             return await ctx.send(embed=embed)
         matchtype = matchtype.lower()
-        text = brown.words()
-        sentences = nltk.sent_tokenize(" ".join(text))
         random_paragraph = ""
-        random_paragraph += str(random.choice(sentences))
+        random_paragraph += str(random.choice(self.sentences))
         while len(random_paragraph) < 250:
-            random_paragraph += str(random.choice(sentences))
+            random_paragraph += str(random.choice(self.sentences))
         random_paragraph = Formatter.format_paragraph(random_paragraph)
         display_paragraph = random_paragraph.replace(" ", "\u034F ")
         words = random_paragraph.split()
