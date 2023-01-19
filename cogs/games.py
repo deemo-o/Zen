@@ -290,7 +290,7 @@ class Games(commands.Cog, description="Games commands."):
                 if player2 in self.typeracer_rematch and player1 in self.typeracer_rematch:
                     self.typeracer_rematch.remove(player1)
                     self.typeracer_rematch.remove(player2)
-                    return await game_start()
+                    game_start.start()
 
             async def decline_button_callback(interaction: discord.Interaction):
                 await interaction.response.defer()
@@ -342,7 +342,7 @@ class Games(commands.Cog, description="Games commands."):
                     if timer == 60:
                         embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} did not respond to your rematch request!"
                         self.typeracer_rematch.remove(player1 if interaction.user == player1 else player2)
-                        return await message.edit(embed=embed)
+                        return await message.edit(embed=embed, delete_after=30)
                 if player1 in self.typeracer_games and player2 in self.typeracer_games:
                     embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} has accepted your request for a rematch!"
                     return await message.edit(embed=embed)
@@ -350,6 +350,7 @@ class Games(commands.Cog, description="Games commands."):
                     embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} has declined your request for a rematch!"
                     return await message.edit(embed=embed)
 
+        @tasks.loop(count=1)
         async def game_start():
                 self.typeracer_games.append(player1)
                 self.typeracer_games.append(player2)
@@ -448,14 +449,14 @@ class Games(commands.Cog, description="Games commands."):
                     await asyncio.sleep(1)
                     counter += 1
                     if counter % 15 == 0:
-                        rating_range += 50
+                        rating_range += 100
                 self.typeracer_rated_queue.remove(player1)
                 self.typeracer_rated_queue.remove(player2)
             rematch_button = Button(label="Ask For Rematch", style=discord.ButtonStyle.primary)
             rematch_button.callback = rematch_button_callback
             view = View(timeout=None)
             view.add_item(rematch_button)
-            await game_start()
+            game_start.start()
             if len(self.typeracer_unrated_queue) == 0 and len(self.typeracer_rated_queue) == 0:
                 self.typeracer_matchmaking.stop()
 
