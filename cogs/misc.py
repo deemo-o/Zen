@@ -36,7 +36,6 @@ class Misc(commands.Cog, description="Misc commands."):
                 counter += 1
             content += "```"
             await member.send(content, delete_after=60)
-            print(f"Sent todo reminder to {member.display_name}")
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -87,15 +86,12 @@ class Misc(commands.Cog, description="Misc commands."):
         embed.title = "Zen | Todo List"
         content = f"```SML\n{ctx.author.display_name}'s Task(s) in Todo List ⇓\n\n"
         member = ctx.author
-        counter = 1
         todo_dboperations.create_table(self.connection, member.id)
         tasks = todo_dboperations.get_todo_list(self.connection, member.id)
         for task in tasks:
-            content += f"{counter} - {task[1]}\n"
-            counter += 1
+            content += f"{task[0]} - {task[1]}\n"
         content += "```"
         await ctx.send(content, delete_after=60)
-        print(tasks)
 
     @commands.command(aliases=["cleartask", "cleartodo", "todoclear"], brief="Clears your todo list.", description="This command will clear all the task(s) in your to do list.")
     async def taskclear(self, ctx: commands.Context):
@@ -104,13 +100,21 @@ class Misc(commands.Cog, description="Misc commands."):
         todo_dboperations.create_table(self.connection, member.id)
         await ctx.invoke(self.tasks)
 
-    @commands.command(aliases=["checktask", "todocheck", "checktodo"], brief="Mark a task as done.", description="This command will mark the checkbox of the task you specified.")
+    @commands.command(aliases=["clearchecked"], brief="Clears all your checked tasks.", description="This command will clear all the tasks that you've already checked.")
+    async def clearcheckedtasks(self, ctx: commands.Context):
+        todo_data = todo_dboperations.get_todo_list(self.connection, ctx.author.id)
+        for task in todo_data:
+            if task[1][:3] == "[X]":
+                todo_dboperations.delete_task(self.connection, ctx.author.id, task[1])
+        await ctx.invoke(self.tasks)
+
+    @commands.command(aliases=["check", "checktask", "todocheck", "checktodo"], brief="Mark a task as done.", description="This command will mark the checkbox of the task you specified.")
     async def taskcheck(self, ctx: commands.Context, task_index: int):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
         tasks = todo_dboperations.get_todo_list(self.connection, member.id)
-        for index, task in enumerate(tasks):
-            if task_index == index + 1:
+        for task in tasks:
+            if task_index == task[0]:
                 todo_dboperations.update_task(self.connection, member.id, f"[X] {task[1][4:].upper()}", task[1])
                 await ctx.invoke(self.tasks)
 
@@ -121,16 +125,6 @@ class Misc(commands.Cog, description="Misc commands."):
         task_index = len(todo_dboperations.get_todo_list(self.connection, member.id))
         todo_dboperations.create_task(self.connection, member.id, f"[ ] [{task.upper()}]")
         await ctx.invoke(self.tasks)
-
-    @commands.command(aliases=["deletetask", "removetask", "taskremove"], brief="Removes a task from your todo list.", description="This command will remove a task from your todo list.")
-    async def taskdelete(self, ctx: commands.Context, task_index: int):
-        member = ctx.author
-        todo_dboperations.create_table(self.connection, member.id)
-        tasks = todo_dboperations.get_todo_list(self.connection, member.id)
-        for index, task in enumerate(tasks):
-            if task_index == index + 1:
-                todo_dboperations.delete_task(self.connection, member.id, task[1])
-                await ctx.invoke(self.tasks)
 
 async def setup(client):
     await client.add_cog(Misc(client))

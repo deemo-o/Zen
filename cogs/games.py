@@ -559,12 +559,12 @@ class Games(commands.Cog, description="Games commands."):
             embed.description = f"{member.mention} never played typeracer!"
             return await ctx.send(embed=embed)
 
-    @commands.command(alises=["resetplayertr"])
+    @commands.command(aliases=["resetplayertr"])
     async def resetplayertyperacer(self, ctx: commands.Context, member: discord.Member):
         embed = self.games_embed(ctx)
         embed.title = "Zen | Typing Race"
         player = typeracer_dboperations.get_rating(self.connection, member.id)
-        if player != []:
+        if player != "Nope":
             typeracer_dboperations.delete_rating(self.connection, member.id)
             new_player = Player(member)
             embed.description = f"Successfully reset <@{new_player.userid}>'s profile"
