@@ -44,9 +44,11 @@ class Games(commands.Cog, description="Games commands."):
     @tasks.loop(minutes=10)
     async def announce_typeracer_queue(self):
         async def join_unrated_queue_button_callback(interaction: discord.Interaction):
+            await interaction.response.defer()
+            if interaction.user in self.typeracer_games:
+                return
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
-            await interaction.response.defer()
             if interaction.user not in self.typeracer_unrated_queue and interaction.user in self.typeracer_rated_queue:
                 self.typeracer_rated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_unrated_queue and interaction.user not in self.typeracer_rated_queue:
@@ -65,9 +67,11 @@ class Games(commands.Cog, description="Games commands."):
             await interaction.message.edit(embed=embed, view=view)
 
         async def join_rated_queue_button_callback(interaction: discord.Interaction):
+            await interaction.response.defer()
+            if interaction.user in self.typeracer_games:
+                return
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
-            await interaction.response.defer()
             if interaction.user not in self.typeracer_rated_queue and interaction.user in self.typeracer_unrated_queue:
                 self.typeracer_unrated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_rated_queue and interaction.user not in self.typeracer_unrated_queue:
@@ -278,7 +282,7 @@ class Games(commands.Cog, description="Games commands."):
                 else:
                     typo_count = f"made {typo_count} typos"
                 embed.add_field(name=f"{player.display_name.capitalize()}'s Result", value=f"{player.display_name.capitalize()} finished in {player_time} seconds, {typo_count} and {missing_count}!\nFinal score: {player_score}\n```INI\n{answer}\n```", inline=False)
-        
+
         async def rematch_button_callback(interaction: discord.Interaction):
             async def accept_button_callback(interaction: discord.Interaction):
                 await interaction.response.defer()
@@ -425,7 +429,6 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_games.remove(player1)
                 self.typeracer_games.remove(player2)
 
-        await asyncio.sleep(2)
         if len(self.typeracer_unrated_queue) >= 2:
             matchtype = "unrated"
         elif len(self.typeracer_rated_queue) >= 2:
@@ -448,8 +451,12 @@ class Games(commands.Cog, description="Games commands."):
                     player2_rating = round(typeracer_dboperations.get_rating(self.connection, player2.id)[0][3]) if typeracer_dboperations.get_rating(self.connection, player2.id) != "Nope" else 1500
                     await asyncio.sleep(1)
                     counter += 1
-                    if counter % 15 == 0:
-                        rating_range += 100
+                    if counter % 3 == 0:
+                        rating_range += 20
+                    if counter == 60:
+                        rating_range = 500
+                    if counter == 120:
+                        rating_range = 5000
                 self.typeracer_rated_queue.remove(player1)
                 self.typeracer_rated_queue.remove(player2)
             rematch_button = Button(label="Ask For Rematch", style=discord.ButtonStyle.primary)
@@ -556,9 +563,11 @@ class Games(commands.Cog, description="Games commands."):
     @commands.command()
     async def typeracerqueue(self, ctx: commands.Context):
         async def join_unrated_queue_button_callback(interaction: discord.Interaction):
+            await interaction.response.defer()
+            if interaction.user in self.typeracer_games:
+                return
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
-            await interaction.response.defer()
             if interaction.user not in self.typeracer_unrated_queue and interaction.user in self.typeracer_rated_queue:
                 self.typeracer_rated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_unrated_queue and interaction.user not in self.typeracer_rated_queue:
@@ -577,9 +586,11 @@ class Games(commands.Cog, description="Games commands."):
             await interaction.message.edit(embed=embed, view=view)
 
         async def join_rated_queue_button_callback(interaction: discord.Interaction):
+            await interaction.response.defer()
+            if interaction.user in self.typeracer_games:
+                return
             if not self.typeracer_matchmaking.is_running():
                 self.typeracer_matchmaking.start()
-            await interaction.response.defer()
             if interaction.user not in self.typeracer_rated_queue and interaction.user in self.typeracer_unrated_queue:
                 self.typeracer_unrated_queue.remove(interaction.user)
             if interaction.user not in self.typeracer_rated_queue and interaction.user not in self.typeracer_unrated_queue:
