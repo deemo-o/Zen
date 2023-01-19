@@ -91,7 +91,8 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_unrated_queue.remove(interaction.user)
             if interaction.user in self.typeracer_rated_queue:
                 self.typeracer_rated_queue.remove(interaction.user)
-            self.typeracer_cancel_list.append(interaction.user)
+            if interaction.user not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
@@ -129,7 +130,7 @@ class Games(commands.Cog, description="Games commands."):
         join_rated_button.callback = join_rated_queue_button_callback
         leave_queue_button = Button(label="Leave Queue", style=discord.ButtonStyle.red)
         leave_queue_button.callback = leave_queue_button_callback
-        view = View()
+        view = View(timeout=None)
         view.add_item(join_unrated_button)
         view.add_item(join_rated_button)
         view.add_item(leave_queue_button)
@@ -138,10 +139,6 @@ class Games(commands.Cog, description="Games commands."):
             messages.append(message)
         timer = 0
         while True:
-            if timer == 300:
-                for message in messages:
-                    await message.delete()
-                return
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
                 rating = f"{round(typeracer_dboperations.get_rating(self.connection, player.id)[0][3])} ELO" if typeracer_dboperations.get_rating(self.connection, player.id) != "Nope" else "Never Played"
@@ -156,6 +153,10 @@ class Games(commands.Cog, description="Games commands."):
                 await message.edit(embed=embed)
             await asyncio.sleep(5)
             timer += 5
+            if timer == 500:
+                for message in messages:
+                    await message.delete()
+                return
 
     @tasks.loop(seconds=5)
     async def typeracer_matchmaking(self):
@@ -306,7 +307,7 @@ class Games(commands.Cog, description="Games commands."):
             accept_button.callback = accept_button_callback
             decline_button = Button(label="Decline", style=discord.ButtonStyle.red)
             decline_button.callback = decline_button_callback
-            view = View()
+            view = View(timeout=None)
             view.add_item(accept_button)
             view.add_item(decline_button)
             embed = discord.Embed()
@@ -340,7 +341,8 @@ class Games(commands.Cog, description="Games commands."):
                     timer += 6
                     if timer == 60:
                         embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} did not respond to your rematch request!"
-                        await message.edit(embed=embed)
+                        self.typeracer_rematch.remove(player1 if interaction.user == player1 else player2)
+                        return await message.edit(embed=embed)
                 if player1 in self.typeracer_games and player2 in self.typeracer_games:
                     embed.description = f"{player2.mention if interaction.user == player1 else player1.mention} has accepted your request for a rematch!"
                     return await message.edit(embed=embed)
@@ -451,7 +453,7 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_rated_queue.remove(player2)
             rematch_button = Button(label="Ask For Rematch", style=discord.ButtonStyle.primary)
             rematch_button.callback = rematch_button_callback
-            view = View()
+            view = View(timeout=None)
             view.add_item(rematch_button)
             await game_start()
             if len(self.typeracer_unrated_queue) == 0 and len(self.typeracer_rated_queue) == 0:
@@ -600,7 +602,8 @@ class Games(commands.Cog, description="Games commands."):
                 self.typeracer_unrated_queue.remove(interaction.user)
             if interaction.user in self.typeracer_rated_queue:
                 self.typeracer_rated_queue.remove(interaction.user)
-            self.typeracer_cancel_list.append(interaction.user)
+            if interaction.user not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(interaction.user)
             embed = interaction.message.embeds[0]
             unrated_queue = ""
             for player in self.typeracer_unrated_queue:
@@ -632,7 +635,7 @@ class Games(commands.Cog, description="Games commands."):
         join_rated_button.callback = join_rated_queue_button_callback
         leave_queue_button = Button(label="Leave Queue", style=discord.ButtonStyle.red)
         leave_queue_button.callback = leave_queue_button_callback
-        view = View()
+        view = View(timeout=None)
         view.add_item(join_unrated_button)
         view.add_item(join_rated_button)
         view.add_item(leave_queue_button)
@@ -661,7 +664,8 @@ class Games(commands.Cog, description="Games commands."):
             if interaction.user != ctx.author:
                 return await interaction.response.defer()
             await interaction.response.defer()
-            self.typeracer_cancel_list.append(ctx.author)
+            if ctx.author not in self.typeracer_cancel_list:
+                self.typeracer_cancel_list.append(ctx.author)
             if ctx.author in self.typeracer_unrated_queue:
                 self.typeracer_unrated_queue.remove(ctx.author)
             if ctx.author in self.typeracer_rated_queue:
@@ -672,7 +676,7 @@ class Games(commands.Cog, description="Games commands."):
         embed = self.games_embed(ctx)
         cancel_button = Button(label="Cancel Search", style=discord.ButtonStyle.red)
         cancel_button.callback = cancel_button_callback
-        view = View()
+        view = View(timeout=None)
         view.add_item(cancel_button)
         if ctx.author in self.typeracer_games:
             embed.description = "You are already in an ongoing typeracer match!"
