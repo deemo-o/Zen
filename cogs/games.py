@@ -540,7 +540,7 @@ class Games(commands.Cog, description="Games commands."):
                 embed.set_thumbnail(url=ctx.author.avatar)
                 embed.add_field(name="Player Name", value=f"**{member_data[2]}**", inline=False)
                 embed.add_field(name="Rating", value=f"**{round(member_data[3])} ELO**", inline=False)
-                embed.add_field(name="Matches Played / Winrate", value=f"**{member_data[6]} / {round((member_data[7] / member_data[6]) * 100)}%**", inline=False)
+                embed.add_field(name="Matches Played / Winrate", value=f"**{member_data[6]} / {round((member_data[7] / member_data[6]) * 100) if member_data[6] != 0 else 0}%**", inline=False)
                 embed.add_field(name="Matches Won / Drawn / Lost", value=f"**{member_data[7]} / {member_data[9]} / {member_data[8]}**", inline=False)
                 embed.add_field(name="Last Match", value=f"**{member_data[10]}**", inline=False)
                 return await ctx.send(embed=embed)
@@ -552,12 +552,26 @@ class Games(commands.Cog, description="Games commands."):
                 embed.set_thumbnail(url=member.avatar)
                 embed.add_field(name="Player Name", value=f"**{member_data[2]}**", inline=False)
                 embed.add_field(name="Rating", value=f"**{round(member_data[3])} ELO**", inline=False)
-                embed.add_field(name="Matches Played / Winrate", value=f"**{member_data[6]} / {round((member_data[7] / member_data[6]) * 100)}%**", inline=False)
+                embed.add_field(name="Matches Played / Winrate", value=f"**{member_data[6]} / {round((member_data[7] / member_data[6]) * 100) if member_data[6] != 0 else 0}%**", inline=False)
                 embed.add_field(name="Matches Won / Drawn / Lost", value=f"**{member_data[7]} / {member_data[9]} / {member_data[8]}**", inline=False)
                 embed.add_field(name="Last Match", value=f"**{member_data[10]}**", inline=False)
                 return await ctx.send(embed=embed)
             embed.description = f"{member.mention} never played typeracer!"
             return await ctx.send(embed=embed)
+
+    @commands.command(alises=["resetplayertr"])
+    async def resetplayertyperacer(self, ctx: commands.Context, member: discord.Member):
+        embed = self.games_embed(ctx)
+        embed.title = "Zen | Typing Race"
+        player = typeracer_dboperations.get_rating(self.connection, member.id)
+        if player != []:
+            typeracer_dboperations.delete_rating(self.connection, member.id)
+            new_player = Player(member)
+            embed.description = f"Successfully reset <@{new_player.userid}>'s profile"
+            return await ctx.send(embed=embed)
+        else:
+            embed.description = f"{member.mention} never played typeracer!"
+            await ctx.send(embed=embed)
 
     @commands.command()
     async def typeracerqueue(self, ctx: commands.Context):

@@ -65,6 +65,12 @@ def get_all_queue_announcementchannels(connection):
     except Exception as exception:
         return exception
 
+def delete_rating(connection, userid):
+    try:
+        games_database.delete_typeracer_rating(connection, userid)
+    except Exception as exception:
+        return exception
+
 def delete_queue_announcementchannel(connection, channelid):
     try:
         games_database.delete_typeracer_queue_announcementchannel(connection, channelid)

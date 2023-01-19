@@ -12,6 +12,7 @@ GET_TYPERACER_RATING_BY_USERID = "SELECT * FROM typeracer_ratings where userid =
 GET_TYPERACER_QUEUE_ANNOUNCEMENTCHANNEL_BY_ID = "SELECT * FROM typeracer_queue_announcementchannels WHERE channelid = ?;"
 GET_ALL_TYPERACER_RATINGS = "SELECT * FROM typeracer_ratings ORDER BY rating DESC;"
 GET_ALL_TYPERACER_QUEUE_ANNOUNCEMENTCHANNELS = "SELECT * FROM typeracer_queue_announcementchannels;"
+DELETE_TYPERACER_RATING = "DELETE FROM typeracer_ratings WHERE userid = ?;"
 DELETE_TYPERACER_QUEUE_ANNOUNCEMENT_CHANNEL = "DELETE FROM typeracer_queue_announcementchannels WHERE channelid = ?;"
 
 

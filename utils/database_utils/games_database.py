@@ -56,6 +56,10 @@ def get_all_typeracer_queue_announcementchannels(connection):
     with connection:
         return connection.execute(games_queries.GET_ALL_TYPERACER_QUEUE_ANNOUNCEMENTCHANNELS).fetchall()
 
+def delete_typeracer_rating(connection, userid):
+    with connection:
+        connection.execute(games_queries.DELETE_TYPERACER_RATING, (userid,))
+
 def delete_typeracer_queue_announcementchannel(connection, channelid):
     with connection:
         connection.execute(games_queries.DELETE_TYPERACER_QUEUE_ANNOUNCEMENT_CHANNEL, (channelid,))
