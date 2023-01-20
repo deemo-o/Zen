@@ -132,6 +132,7 @@ class Music(commands.Cog, description="Music commands."):
             host=os.getenv("HOST"),
             port=os.getenv("PORT"),
             password=os.getenv("PASSWORD"),
+            https=os.getenv("SSL"),
             identifier="Zen")
 
     def get_nodes(self):
