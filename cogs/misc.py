@@ -94,7 +94,7 @@ class Misc(commands.Cog, description="Misc commands."):
         await ctx.send(content, delete_after=60)
 
     @commands.command(aliases=["cleartask", "cleartodo", "todoclear"], brief="Clears your todo list.", description="This command will clear all the task(s) in your to do list.")
-    async def taskclear(self, ctx: commands.Context):
+    async def cleartodolist(self, ctx: commands.Context):
         member = ctx.author
         todo_dboperations.drop_table(self.connection, member.id)
         todo_dboperations.create_table(self.connection, member.id)
@@ -122,9 +122,18 @@ class Misc(commands.Cog, description="Misc commands."):
     async def taskcreate(self, ctx: commands.Context, *, task: str):
         member = ctx.author
         todo_dboperations.create_table(self.connection, member.id)
-        task_index = len(todo_dboperations.get_todo_list(self.connection, member.id))
         todo_dboperations.create_task(self.connection, member.id, f"[ ] [{task.upper()}]")
         await ctx.invoke(self.tasks)
+
+    @commands.command(aliases=["deletetask", "removetask", "taskremove"], brief="Removes a task from your todo list.", description="This command will remove a task from your todo list.")
+    async def taskdelete(self, ctx: commands.Context, task_index: int):
+        member = ctx.author
+        todo_dboperations.create_table(self.connection, member.id)
+        tasks = todo_dboperations.get_todo_list(self.connection, member.id)
+        for task in tasks:
+            if task_index == task[0]:
+                todo_dboperations.delete_task(self.connection, member.id, task[1])
+                return await ctx.invoke(self.tasks)
 
 async def setup(client):
     await client.add_cog(Misc(client))
