@@ -11,7 +11,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Union
 from wavelink import LavalinkException, LoadTrackError, YouTubeTrack, YouTubeMusicTrack, YouTubePlaylist, SoundCloudTrack
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import app_commands
 from utils.music_utils.source import Source
 from utils.music_utils.loop import Loop
@@ -111,6 +111,13 @@ class Music(commands.Cog, description="Music commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
+        self.node: wavelink.Node
+        self.lavalink_disconnect = []
+        if not self.handle_lavalink_connection.is_running():
+            self.handle_lavalink_connection.start()
+
+    def cog_unload(self):
+        self.handle_lavalink_connection.cancel()
 
     def music_embed(self, ctx: commands.Context) -> discord.Embed:
         embed = discord.Embed(title="Zen | Music", color=ctx.author.color, timestamp=datetime.now())
@@ -170,19 +177,16 @@ class Music(commands.Cog, description="Music commands."):
             if source else track_sources.get(player.track_source)
         )
 
-        nodes = self.get_nodes()
+        node = self.get_nodes()[0]
         tracks = list()
 
-        for node in nodes:
-            try:
-                with async_timeout.timeout(20):
-                    tracks = await source.search(query, node=node)
-                    break
-            except asyncio.TimeoutError:
-                wavelink.NodePool._nodes.pop(node.identifier)
-                continue
-            except (LavalinkException, LoadTrackError):
-                continue
+        try:
+            with async_timeout.timeout(20):
+                tracks = await source.search(query, node=node)
+        except asyncio.TimeoutError:
+            print("Music player search timed out!")
+        except (LavalinkException, LoadTrackError):
+            pass
 
         if not tracks:
             embed.description = "No song found!"
@@ -222,14 +226,37 @@ class Music(commands.Cog, description="Music commands."):
         if not player.is_playing():
             await player.do_next()       
 
+    @tasks.loop(seconds=5)
+    async def handle_lavalink_connection(self):
+        print(self.lavalink_disconnect)
+        self.node = self.get_nodes()[0]
+        node = self.node
+        for guild in self.client.guilds:
+            player = node.get_player(guild)
+            if not node.is_connected():
+                if player is not None:
+                    print(f"Disconnecting {guild.name}'s music player")
+                    self.lavalink_disconnect.append(player)
+                    if player.is_playing():
+                        position = player.position
+                    await player.disconnect()
+        if node.is_connected():
+            for player in self.lavalink_disconnect:
+                player: wavelink.Player
+                channel: discord.VoiceChannel = player.channel
+                self.lavalink_disconnect.remove(player)
+                await channel.connect(cls=Player)
+
     @commands.Cog.listener()
     async def on_ready(self):
         print("Music module has been loaded.")
         self.client.loop.create_task(self.start_nodes())
-    
+        self.handle_lavalink_connection.start()
+
     @commands.Cog.listener()
     async def on_wavelink_node_ready(self, node: wavelink.Node):
         print(f"Node: {node.identifier} is ready!")
+        self.node = node
 
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, player: Player, track: Union[Track, YouTubeTrack]):
@@ -247,14 +274,19 @@ class Music(commands.Cog, description="Music commands."):
     async def on_wavelink_track_exception(self, player: Player, track: YouTubeTrack, error):
         await player.do_next()
 
+    @commands.command()
+    async def nodes(self, ctx: commands.Context):
+        print(self.node)
+        print(self.node.get_player(ctx.guild))
+        print(self.node.is_connected())
+
     @commands.command(aliases=["join"], brief='Connects the bot to your channel.', description=f'This command will connect the bot to the channel you are in.')
     async def connect(self, ctx: commands.Context):
         if not ctx.author.voice:
-            await ctx.send("You need to be in a voice channel!")
+            return await ctx.send("You need to be in a voice channel!")
         if not ctx.voice_client:
-            player: Player = await ctx.author.voice.channel.connect(cls=Player, reconnect=True)
-        else:
-            player: Player = ctx.voice_client
+            player = await ctx.author.voice.channel.connect(cls=Player, self_deaf=True)
+            return player
 
     @commands.command(aliases=['leave'], brief='Disconnects the bot from your channel.', description='This command will disconnect the bot from the channel you are in.')
     async def disconnect(self, ctx: commands.Context):
