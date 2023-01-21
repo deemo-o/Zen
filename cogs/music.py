@@ -3,12 +3,12 @@ import datetime
 import math
 import os
 import random
-import time
 import typing
 import async_timeout
 import discord
 import wavelink
 import re
+from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Union
 from wavelink import LavalinkException, LoadTrackError, YouTubeTrack, YouTubeMusicTrack, YouTubePlaylist, SoundCloudTrack
@@ -16,7 +16,6 @@ from discord.ext import commands, tasks
 from discord import app_commands
 from utils.music_utils.source import Source
 from utils.music_utils.loop import Loop
-from dotenv import load_dotenv
 
 class Track(wavelink.Track):
 
@@ -58,7 +57,6 @@ class Player(wavelink.Player):
             return await self.teardown()
         await self.play(track)
         if kwargs.get("position") is not None:
-            await asyncio.sleep(1)
             await self.seek(kwargs.get("position"))
         self.looped_track = track
         await self.context.send(embed=self.build_embed(is_now_playing=True), delete_after=track.length)
@@ -155,8 +153,7 @@ class Music(commands.Cog, description="Music commands."):
     
     def __init__(self, client: commands.Bot):
         self.client = client
-        self.node: wavelink.Node
-        self.lavalink_disconnect = []
+        self.lavalink_disconnect = defaultdict(list)
         if not self.handle_lavalink_connection.is_running():
             self.handle_lavalink_connection.start()
 
@@ -172,19 +169,6 @@ class Music(commands.Cog, description="Music commands."):
         if isinstance(error, Exception):
             embed.description = str(error).capitalize()
             return await ctx.send(embed=embed)
-
-    async def start_nodes(self):
-        await self.client.wait_until_ready()
-
-        load_dotenv()
-
-        await wavelink.NodePool.create_node(
-            bot=self.client,
-            host=os.getenv("HOST"),
-            port=os.getenv("PORT"),
-            password=os.getenv("PASSWORD"),
-            https=os.getenv("SSL") if os.getenv("SSL") == True else False,
-            identifier="Zen")
 
     def get_nodes(self):
         return sorted(wavelink.NodePool._nodes.values(), key=lambda n: len(n.players))
@@ -273,46 +257,70 @@ class Music(commands.Cog, description="Music commands."):
 
     @tasks.loop(seconds=5)
     async def handle_lavalink_connection(self):
-        self.node = self.get_nodes()[0]
-        node = self.node
-        if not node.is_connected():
-            for guild in self.client.guilds:
-                player = node.get_player(guild)
-                if player is not None and player.is_playing():
-                    current_track: Union[Track, YouTubeTrack] = player.source
-                    position = player.position
-                    new_queue = asyncio.Queue()
-                    await new_queue.put(current_track)
-                    for track in player.queue._queue:
-                        await new_queue.put(track)
-                    self.lavalink_disconnect.append([player, new_queue, position])
-                    await player.disconnect()
-                    embed = self.music_embed(player.context)
-                    embed.description = "Oops, it looks like we've lost connection. Zen Music will try to reconnect as soon as possible!"
-                    await player.context.send(embed=embed, delete_after=30)
-        if node.is_connected():
-            for player_info in self.lavalink_disconnect:
-                player: Player = player_info[0]
-                queue: asyncio.Queue() = player_info[1]
-                track_position: int = player_info[2]
-                channel: discord.VoiceChannel = player.channel
-                new_player: Player = await channel.connect(cls=Player)
-                new_player.context = player.context
-                new_player.queue = queue
-                await new_player.set_volume(10)
-                await new_player.do_next(position=track_position*1000)
-                self.lavalink_disconnect.remove(player_info)
+        nodes = self.get_nodes()
+        if len(nodes) < 1:
+            counter = 1
+            while True:
+                try:
+                    await self.client.wait_until_ready()
+                    node: wavelink.Node = await asyncio.wait_for(wavelink.NodePool.create_node(
+                        bot=self.client,
+                        host=os.getenv(f"HOST{counter}"),
+                        port=os.getenv(f"PORT{counter}"),
+                        password=os.getenv(f"PASSWORD{counter}"),
+                        https=True if os.getenv(f"SSL{counter}") == "True" else False,
+                        identifier=f"Zen #{counter}"), timeout=5)
+                    break
+                except asyncio.TimeoutError:
+                    print(f"Timed out creating node: Zen#{counter}")
+                    await self.get_nodes()[0].disconnect()
+                    counter += 1
+
+        for node in nodes:
+            if not node.is_connected():
+                for guild in self.client.guilds:
+                    player = node.get_player(guild)
+                    if player is not None and player.is_playing():
+                        current_track: Union[Track, YouTubeTrack] = player.source
+                        position = player.position
+                        new_queue = asyncio.Queue()
+                        new_queue.put_nowait(current_track)
+                        for track in player.queue._queue:
+                            new_queue.put_nowait(track)
+                        self.lavalink_disconnect[guild].append(player)
+                        self.lavalink_disconnect[guild].append(new_queue)
+                        self.lavalink_disconnect[guild].append(position)
+                        embed = self.music_embed(player.context)
+                        embed.description = "Oops, it looks like we've lost connection. Zen Music will try to reconnect as soon as possible!"
+                        await player.context.send(embed=embed, delete_after=30)
+                        await player.disconnect()
+                await node.disconnect()
+            if node.is_connected():
+                for guild in self.client.guilds:
+                    if guild in self.lavalink_disconnect.keys():
+                        player_info = self.lavalink_disconnect.pop(guild)
+                        player: Player = player_info[0]
+                        queue: asyncio.Queue() = player_info[1]
+                        track_position: int = player_info[2]
+                        channel: discord.VoiceChannel = player.channel
+                        new_player: Player = await channel.connect(cls=Player)
+                        new_player.context = player.context
+                        new_player.queue = queue
+                        await new_player.set_volume(10)
+                        await new_player.do_next(position=track_position*1000)
 
     @commands.Cog.listener()
     async def on_ready(self):
         print("Music module has been loaded.")
-        self.client.loop.create_task(self.start_nodes())
         self.handle_lavalink_connection.start()
 
     @commands.Cog.listener()
     async def on_wavelink_node_ready(self, node: wavelink.Node):
         print(f"Node: {node.identifier} is ready!")
-        self.node = node
+
+    @commands.Cog.listener()
+    async def on_wavelink_websocket_closed(player: Player, reason, code):
+        print("LAVALINK WEBSOCKET CLOSED")
 
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, player: Player, track: Union[Track, YouTubeTrack]):
@@ -329,6 +337,33 @@ class Music(commands.Cog, description="Music commands."):
     @commands.Cog.listener()
     async def on_wavelink_track_exception(self, player: Player, track: YouTubeTrack, error):
         print(f"'{player.guild.name}' encountered Track Stuck\nTitle: {track.title}\nError: {error}")
+
+    @commands.command()
+    async def destroynode(self, ctx: commands.Context):
+        player: Player = ctx.voice_client
+        if player is None:
+            return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
+        if self.get_nodes():
+            node: wavelink.Node = self.get_nodes()[0]
+            for guild in self.client.guilds:
+                player = node.get_player(guild)
+                if player is not None and player.is_playing():
+                    current_track: Union[Track, YouTubeTrack] = player.source
+                    position = player.position
+                    new_queue = asyncio.Queue()
+                    new_queue.put_nowait(current_track)
+                    for track in player.queue._queue:
+                        new_queue.put_nowait(track)
+                    self.lavalink_disconnect[guild].append(player)
+                    self.lavalink_disconnect[guild].append(new_queue)
+                    self.lavalink_disconnect[guild].append(position)
+                    embed = self.music_embed(player.context)
+                    embed.description = "Oops, it looks like we've lost connection. Zen Music will try to reconnect as soon as possible!"
+                    await player.context.send(embed=embed, delete_after=30)
+                    await player.disconnect()
+            await node.disconnect()
+            return await ctx.send(embed=discord.Embed(description=f"Disconnected node: {node.identifier}"))
+        await ctx.send(embed=discord.Embed(description="There is currently no node to disconnect!"))
 
     @commands.command()
     async def seek(self, ctx: commands.Context, seconds: int):
@@ -353,7 +388,7 @@ class Music(commands.Cog, description="Music commands."):
 
     @commands.command(aliases=['leave'], brief='Disconnects the bot from your channel.', description='This command will disconnect the bot from the channel you are in.')
     async def disconnect(self, ctx: commands.Context):
-        player: Player = self.node.get_player(ctx.guild)
+        player: Player = ctx.voice_client
         if player is None:
             return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
         await player.disconnect()
@@ -375,6 +410,8 @@ class Music(commands.Cog, description="Music commands."):
     @commands.command(aliases=['np'], brief='Shows the current playing song.', description='This command will display the currently playing song.')
     async def nowplaying(self, ctx: commands.Context):
         player: Player = ctx.voice_client
+        if player is None:
+            return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
         await ctx.send(embed=player.build_embed(is_now_playing=True), delete_after=60)
 
     @commands.command(brief='Skips the current music.', description='This command will skip the current music.')
@@ -383,8 +420,8 @@ class Music(commands.Cog, description="Music commands."):
         if player is None:
             return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
         if player.is_playing():
-            await player.stop()
-            return await ctx.send(embed=discord.Embed(description=f"Skipped `{player.source}`.", color=ctx.author.top_role.color), delete_after=60)
+            await ctx.send(embed=discord.Embed(description=f"Skipped `{player.source}`.", color=ctx.author.top_role.color), delete_after=60)
+            return await player.stop()
         await ctx.send(embed=discord.Embed(description="Nothing is currently playing!", color=ctx.author.top_role.color), delete_after=60)
 
     @commands.command(brief='Removes a song.', description='This command will remove a song in the queue.')
@@ -393,10 +430,11 @@ class Music(commands.Cog, description="Music commands."):
         if player is None:
             return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
         if index is None:
-            index = player.queue.qsize() - 1 if player.queue.qsize() > 0 else -1
-        if not player.queue.qsize() < index < player.queue.qsize():
+            index = player.queue.qsize()
+        if 0 < index <= player.queue.qsize():
+            await ctx.send(embed=discord.Embed(description=f"Removed `{player.queue._queue[index - 1].title}` from the queue."), delete_after=60)
             del player.queue._queue[index - 1]
-            return await ctx.send(embed=discord.Embed(description=f"Removed `{player.queue._queue[index - 1].title}` from the queue."), delete_after=60)
+            return
         await ctx.send(embed=discord.Embed(description="The song you're trying to remove doesn't exist!"), delete_after=60)
 
     @commands.command(aliases=['mv', 'swap'], brief='Swaps two songs in the queue.', description='This command will swap the order of two specified songs in the queue.\nIf no second song is specified, your song will be swapped with the next song in the queue.')
@@ -413,7 +451,7 @@ class Music(commands.Cog, description="Music commands."):
             player.queue._queue.insert(first_index - 1, second_song)
             del player.queue._queue[second_index - 1]
             player.queue._queue.insert(second_index - 1, first_song)
-            await ctx.send(embed=discord.Embed(description=f"Swapped `{first_song.title}` and `{second_song.title}`", color=ctx.author.top_role.color), delete_after=60)
+            return await ctx.send(embed=discord.Embed(description=f"Swapped `{first_song.title}` and `{second_song.title}`", color=ctx.author.top_role.color), delete_after=60)
         await ctx.send(embed=discord.Embed(description=f"One of the songs you specified doesn't exist!", color=ctx.author.top_role.color), delete_after=60)
 
     @commands.command(aliases=['random'], brief='Shuffles the queue.', description='This command will shuffle the queue.')
