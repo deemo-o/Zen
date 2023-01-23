@@ -3,7 +3,7 @@ from discord.ext import commands
 from discord.ext.commands.errors import ExtensionAlreadyLoaded, ExtensionNotLoaded, ExtensionNotFound
 from discord import app_commands
  
-class System(commands.Cog, description="System commands."):
+class System(commands.Cog, description="System commands **(Staff)**."):
     
     def __init__(self, client: commands.Bot):
         self.client = client

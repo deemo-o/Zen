@@ -12,7 +12,11 @@ class CustomHelpCommand(commands.HelpCommand):
         description = f'The following is a list of currently available modules. Type {self.client.command_prefix}help [module] to display all the commands inside a specific module.\n\n'
         for cog in mapping:
             if cog is not None:
-                description += f'**`{cog.qualified_name}`** - {cog.description}\n'
+                if cog.qualified_name == "Moderation" or cog.qualified_name == "System":
+                    if self.context.author.guild_permissions.ban_members:
+                        description += f'**`{cog.qualified_name}`** - {cog.description}\n'
+                else:
+                    description += f'**`{cog.qualified_name}`** - {cog.description}\n'
 
         embed = discord.Embed(title="List of modules", description=description, timestamp=datetime.now(), color=discord.Color.from_rgb(248, 175, 175))
         embed.set_footer(text=f'Made by Debo#4828', icon_url="https://cdn.discordapp.com/avatars/172503861477507072/c9caab2bdc40c15c27d3983dca7f9071.png?size=1024")
@@ -34,7 +38,11 @@ class CustomHelpCommand(commands.HelpCommand):
                         if command.brief is None:
                             description += f'**`{self.client.command_prefix}{command.name}`**: No brief description\n'
                         else:
-                            description += f'**`{self.client.command_prefix}{command.name}`**: {command.brief}\n'
+                            if "Staff" in command.brief:
+                                if self.context.author.guild_permissions.ban_members:
+                                    description += f'**`{self.client.command_prefix}{command.name}`**: {command.brief}\n'
+                            else:
+                                description += f'**`{self.client.command_prefix}{command.name}`**: {command.brief}\n'
 
             description += "\n**Slash commands**\n\n"
             if cog.get_app_commands() == []:

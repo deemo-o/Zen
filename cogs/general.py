@@ -99,7 +99,6 @@ class General(commands.Cog, description="Simple commands."):
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={os.getenv('WEATHER_API_KEY')}&units=metric") as resp:
-                    print(resp.status)
                     data = await resp.json()
                     cityName = data['name']
         except: 

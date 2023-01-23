@@ -7,3 +7,4 @@ Lavalink
 wordhoard_error.yaml
 utils/database_utils/database.db
 .idea
+.vscode
