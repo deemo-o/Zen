@@ -50,15 +50,20 @@ class Player(wavelink.Player):
                 if self.loop == "CURRENT":
                     track = self.looped_track
                 elif self.loop == "QUEUE":
-                    await self.queue.put(self.looped_track)
+                    if kwargs.get("skip_loop") == True:
+                        pass
+                    else:
+                        await self.queue.put(self.looped_track)
                     track = await self.queue.get()
                 else:
                     track = await self.queue.get()
         except asyncio.TimeoutError:
             return await self.teardown()
         if isinstance(track, wavelink.PartialTrack):
+            track: wavelink.PartialTrack
+            requester = track.query
             track = await YouTubeTrack.search(query=track.title, return_first=True)
-            track.requester = self.context.author
+            track.requester = requester
         await self.play(track)
         if kwargs.get("position") is not None:
             await self.seek(kwargs.get("position"))
@@ -245,7 +250,6 @@ class Music(commands.Cog, description="Music commands."):
         tracks = list()
         embed = discord.Embed(description=f"Searching for `{query}`", color=ctx.author.color)
         message = await ctx.send(embed=embed)
-        print(f"The Track Source: {track_source}")
 
         try:
             with async_timeout.timeout(60):
@@ -281,6 +285,7 @@ class Music(commands.Cog, description="Music commands."):
             
         if isinstance(tracks, list) and "spotify.com/playlist" in query or "spotify.com/album" in query:
             for track in tracks:
+                track.query = ctx.author
                 await player.queue.put(track)
             type = "playlist" if "playlist" in query else "album"
             embed.description = f"Added the spotify {type}, with `{len(tracks)}` songs, to the queue."
@@ -366,8 +371,10 @@ class Music(commands.Cog, description="Music commands."):
                         new_player: Player = await channel.connect(cls=Player, self_deaf=True)
                         new_player.context = player.context
                         new_player.queue = queue
+                        new_player.looped_track = player.looped_track
+                        new_player.loop = player.loop
                         await new_player.set_volume(self.player_volume)
-                        await new_player.do_next(position=track_position*1000)
+                        await new_player.do_next(position=track_position*1000, skip_loop=True)
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -452,7 +459,9 @@ class Music(commands.Cog, description="Music commands."):
             embed.description = "You need to be in a voice channel!"
             return await ctx.send(embed=embed)
         if not ctx.voice_client:
+            embed.description = f"Connected to {ctx.author.voice.channel.mention}!"
             player: Player = await ctx.author.voice.channel.connect(cls=Player, self_deaf=True)
+            await ctx.send(embed=embed)
             return await player.set_volume(self.player_volume)
         if ctx.author.voice.channel != ctx.voice_client.channel:
             embed.description = "I'm already in a different voice channel!"
@@ -485,7 +494,9 @@ class Music(commands.Cog, description="Music commands."):
         player: Player = ctx.voice_client
         if player is None:
             return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
-        await ctx.send(embed=player.build_embed(is_now_playing=True), delete_after=60)
+        if player.is_playing():
+            return await ctx.send(embed=player.build_embed(is_now_playing=True), delete_after=60)
+        await ctx.send(embed=discord.Embed(description="Nothing is playing!", color=ctx.author.color), delete_after=60)
 
     @commands.command(brief='Skips the current music.', description='This command will skip the current music.')
     async def skip(self, ctx: commands.Context):
@@ -533,10 +544,14 @@ class Music(commands.Cog, description="Music commands."):
         if player is None:
             return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
         query = query.strip("<>")
-        track_to_find = await YouTubeTrack.search(query=query, node=player.node, return_first=self.return_first)
+        track_to_find = await YouTubeTrack.search(query=query, node=player.node, return_first=True)
         for index, track in enumerate(player.queue._queue):
+            if isinstance(track, wavelink.PartialTrack):
+                track = await YouTubeTrack.search(query=f"{track.title}", node=player.node, return_first=True)
             if track.title == track_to_find.title:
                 return await ctx.send(embed=discord.Embed(description=f"`{track.title}` is in the queue at position `{index + 1}`.", color=ctx.author.top_role.color), delete_after=60)
+            if query in track.title.lower():
+                return await ctx.send(embed=discord.Embed(description=f"`{query}` is in the queue at position `{index + 1}`.", color=ctx.author.top_role.color), delete_after=60)
         await ctx.send(embed=discord.Embed(description=f"`{track_to_find.title}` isn't in the queue.", color=ctx.author.top_role.color), delete_after=60)
     
     @commands.command(aliases=['random'], brief='Shuffles the queue.', description='This command will shuffle the queue.')
