@@ -5,7 +5,7 @@ from discord.ext import commands
 from discord import app_commands
 from discord.utils import get
  
-class Moderation(commands.Cog, description="Moderation commands."):
+class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
     
     def __init__(self, client: commands.Bot):
         self.client = client

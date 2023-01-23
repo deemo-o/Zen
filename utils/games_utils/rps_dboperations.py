@@ -4,7 +4,6 @@ from utils.database_utils import games_database
 def connection():
     try:
       connection = games_database.connect()
-      print("Connected to Database From RPS DBOperations!")
       return connection
     except Exception as exception:
       return exception
@@ -12,7 +11,6 @@ def connection():
 def create_table(connection):
     try:
       games_database.create_rps_table(connection)
-      print("Created RPS Table")
     except Exception as exception:
       return exception
       

@@ -1,12 +1,8 @@
 import asyncio
-import datetime
 import logging
 import os
 import discord
-from datetime import datetime
 from discord.ext import commands
-from discord import app_commands
-from discord.utils import get
 from dotenv import load_dotenv
 from utils.zen_utils.help import CustomHelpCommand
 
@@ -21,6 +17,7 @@ load_dotenv()
 client = commands.Bot(
     command_prefix=os.getenv("COMMAND_PREFIX"),
     intents=discord.Intents.all(),
+    status=discord.Status.invisible,
     case_insensitive=True)
 
 client.help_command = CustomHelpCommand(client)
