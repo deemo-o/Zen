@@ -388,6 +388,7 @@ class Music(commands.Cog, description="Music commands."):
     @commands.Cog.listener()
     async def on_wavelink_websocket_closed(self, player: Player, reason, code):
         print(f"Lavalink closed node: {player.node.identifier}\nReason: {reason}\nCode: {code}")
+        self.switching_node = True
 
     @commands.Cog.listener()
     async def on_wavelink_track_start(self, player: Player, track: Union[Track, YouTubeTrack]):
