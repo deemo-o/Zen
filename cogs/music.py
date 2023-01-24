@@ -203,7 +203,7 @@ class Music(commands.Cog, description="Music commands."):
             return await ctx.send(embed=embed)
 
     async def create_wavelink_node(self):
-            if self.lavalink_server not in [1, 2, 3]:
+            if self.lavalink_server not in [1, 2, 3, 4, 5]:
                 self.lavalink_server = 1
             while True:
                 try:
@@ -222,7 +222,7 @@ class Music(commands.Cog, description="Music commands."):
                 except asyncio.TimeoutError:
                     print(f"Timed out creating node: Zen#{self.lavalink_server}")
                     await self.get_nodes()[0].disconnect()
-                    if self.lavalink_server == 3:
+                    if self.lavalink_server == 5:
                         self.lavalink_server = 1
                     else:
                         self.lavalink_server += 1
@@ -421,7 +421,7 @@ class Music(commands.Cog, description="Music commands."):
             node: wavelink.Node = self.get_nodes()[0]
             self.switching_node = True
             if node_number is None:
-                if self.lavalink_server == 3:
+                if self.lavalink_server == 5:
                     self.lavalink_server = 1
                 else:
                     self.lavalink_server += 1
