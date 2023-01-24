@@ -17,7 +17,6 @@ load_dotenv()
 client = commands.Bot(
     command_prefix=os.getenv("COMMAND_PREFIX"),
     intents=discord.Intents.all(),
-    status=discord.Status.invisible,
     case_insensitive=True)
 
 client.help_command = CustomHelpCommand(client)
