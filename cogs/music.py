@@ -362,6 +362,13 @@ class Music(commands.Cog, description="Music commands."):
                 return await node.disconnect()
             if node.is_connected():
                 for guild in self.client.guilds:
+                    player = node.get_player(guild)
+                    if player is not None and len(player.channel.members) == 1:
+                        embed = self.music_embed(player.context)
+                        embed.description = "I'm alone ;-;\nGuess it's time to go!"
+                        await player.context.send(embed=embed)
+                        await asyncio.sleep(1)
+                        await player.disconnect()
                     if guild in self.lavalink_disconnected_players.keys():
                         player_info = self.lavalink_disconnected_players.pop(guild)
                         player: Player = player_info[0]
