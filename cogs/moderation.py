@@ -91,6 +91,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
                 self.poll_reactions_count["No"] -= 1
 
     @commands.command(aliases=["clear", "clearm", "deletemessage", "deletem", "purge"], brief="Clears messages in a channel.", description="This command will clear an amount of messages in a text channel. Is a user is specified, this command will clear all the messages the user sent in the last amount of messages.")
+    @commands.has_permissions(ban_members=True)
     async def clearmessage(self, ctx: commands.Context, amount: int = 20, member: discord.Member = None):
         embed = self.moderation_embed(ctx)
         if member is None:
@@ -103,6 +104,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
             await ctx.send(embed=embed, delete_after=15)
 
     @commands.command(aliases=["warning", "alert", "inform"], brief="Warn a user with the specified message", description="This command will send a warning message to a user with the specified message.")
+    @commands.has_permissions(ban_members=True)
     async def warn(self, ctx: commands.Context, member: discord.Member, *, message: str):
         embed = self.moderation_embed(ctx)
         embed.title = "Zen | Warning"
@@ -111,6 +113,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
         await member.send(embed=embed)
 
     @commands.command(aliases=["lock"], brief="Prevents users from sending message in a channel.", description="This command will lock a channel and prevent any users from sending messages in the channel.")
+    @commands.has_permissions(ban_members=True)
     async def lockchannel(self, ctx: commands.Context):
         embed = self.moderation_embed(ctx)
         overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
@@ -120,6 +123,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["unlock"], brief="Removes the prevention allowing users to send messages in a channel.", description="This command will unlock a channel and allow users to send messages in the channel again.")
+    @commands.has_permissions(ban_members=True)
     async def unlockchannel(self, ctx: commands.Context):
         embed = self.moderation_embed(ctx)
         overwrite = ctx.channel.overwrites_for(ctx.guild.default_role)
@@ -129,6 +133,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
         await ctx.send(embed=embed)
 
     @commands.command(brief="Asks admins for help.", description="This command will send your call for help message to every admin in the server.")
+    @commands.has_permissions(ban_members=True)
     async def adminhelp(self, ctx: commands.Context, *, message: str):
         embed = self.moderation_embed(ctx)
         embed.title = "Zen | Admin Help"
@@ -143,6 +148,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
 
     # Yes and No answers only
     @commands.command(brief="Starts a poll with the specified question and time limit.", description="This command will start a poll with the time limit you as the first argument and the question as the second argument.")
+    @commands.has_permissions(ban_members=True)
     async def poll(self, ctx: commands.Context, timeout: int, *, message: str):
         channel = self.poll_channel
         embed = self.moderation_embed(ctx)
@@ -162,6 +168,7 @@ class Moderation(commands.Cog, description="Moderation commands **(Staff)**."):
         self.poll_reactions_count["No"] = 0
             
     @commands.command(brief="Sets up the roles. (work in progress)", description="Work in progress.")
+    @commands.has_permissions(ban_members=True)
     async def rolesetup(self, ctx: commands.Context, channel: discord.TextChannel):
         study_role = get(ctx.author.guild.roles, name="Study")
         movie_role = get(ctx.author.guild.roles, name="Movie")
