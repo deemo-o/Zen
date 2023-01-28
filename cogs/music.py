@@ -569,7 +569,7 @@ class Music(commands.Cog, description="Music commands."):
             return await ctx.send(embed=discord.Embed(description="I'm not connected to any voice channel!", color=ctx.author.color), delete_after=60)
         if player.queue.qsize() > 1:
             random.shuffle(player.queue._queue)
-            await ctx.send(embed=discord.Embed(description="The queue has been shuffled!", color=ctx.author.top_role.color), delete_after=60)
+            return await ctx.send(embed=discord.Embed(description="The queue has been shuffled!", color=ctx.author.top_role.color), delete_after=60)
         await ctx.send(embed=discord.Embed(description="You need at least two songs in the queue to be able to use this command!", color=ctx.author.top_role.color), delete_after=60)
 
     @commands.command(aliases=["repeat"], brief="Loops the current playing song", description="This command will loop the song that is currently playing.")
